@@ -38,6 +38,15 @@ if (process.env.NODE_ENV !== 'production') {
 // Serve uploaded files (medical records, profile pictures)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Welcome / Root route
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Rural Healthcare Access Platform API is running successfully!',
+    healthCheck: '/api/health',
+  });
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'Rural Healthcare Access Platform API is running' });
