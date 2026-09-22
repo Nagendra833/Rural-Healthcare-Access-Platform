@@ -1,8 +1,17 @@
 // Centralized Axios instance used by every service module
 import axios from 'axios';
 
+const getBaseURL = () => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  if (envUrl && envUrl.trim() && envUrl !== '/api') {
+    return envUrl;
+  }
+  return 'https://rural-healthcare-access-platform.onrender.com/api';
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://rural-healthcare-access-platform.onrender.com/api',
+  baseURL: getBaseURL(),
+  timeout: 45000,
 });
 
 // Attach the JWT (if present) to every outgoing request

@@ -38,7 +38,15 @@ const Login = () => {
       const redirectTo = location.state?.from || roleHome[data.user.role] || '/dashboard';
       navigate(redirectTo, { replace: true });
     } catch (err) {
-      showToast(err.response?.data?.message || 'Login failed. Please check your credentials.', 'error');
+      const errorMsg =
+        err.response?.data?.message ||
+        (err.code === 'ECONNABORTED' || err.message?.includes('timeout')
+          ? 'Backend is waking up (Render free tier cold start). Please retry in 10-15 seconds.'
+          : err.code === 'ERR_NETWORK' || err.message === 'Network Error'
+          ? 'Cannot connect to backend server. Render may be waking up from sleep. Please try again shortly.'
+          : err.message) ||
+        'Login failed. Please check your credentials.';
+      showToast(errorMsg, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -110,8 +118,19 @@ const Login = () => {
             </Link>
           </div>
 
-          <button type="submit" className="btn-primary w-full" disabled={submitting}>
-            {submitting ? 'Signing in...' : 'Sign In'}
+          <button
+            type="submit"
+            className="btn-primary w-full flex items-center justify-center gap-2"
+            disabled={submitting}
+          >
+            {submitting ? (
+              <>
+                <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                <span>Signing In...</span>
+              </>
+            ) : (
+              'Sign In'
+            )}
           </button>
         </form>
 

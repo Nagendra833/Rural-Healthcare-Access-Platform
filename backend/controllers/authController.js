@@ -25,7 +25,33 @@ const register = asyncHandler(async (req, res) => {
 
   const existingUser = await User.findOne({ email: email.toLowerCase() });
   if (existingUser) {
-    return res.status(400).json({ success: false, message: 'An account with this email already exists' });
+    const Appointment = require('../models/Appointment');
+    const Record = require('../models/Record');
+    const hasAppointments = await Appointment.exists({
+      $or: [{ patient: existingUser._id }, { doctor: existingUser._id }],
+    });
+    const hasRecords = await Record.exists({ patient: existingUser._id });
+
+    if (hasAppointments || hasRecords) {
+      return res.status(400).json({ success: false, message: 'An account with this email already exists' });
+    }
+
+    existingUser.fullName = fullName;
+    existingUser.phone = phone;
+    existingUser.password = password;
+    existingUser.role = finalRole;
+    await existingUser.save();
+
+    const token = generateToken(existingUser._id);
+    return res.status(200).json({
+      success: true,
+      message:
+        finalRole === 'doctor'
+          ? 'Registration successful. Your account is pending admin approval.'
+          : 'Registration successful',
+      token,
+      user: existingUser.toSafeObject(),
+    });
   }
 
   const user = await User.create({
