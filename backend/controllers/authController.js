@@ -26,11 +26,11 @@ const register = asyncHandler(async (req, res) => {
   const existingUser = await User.findOne({ email: email.toLowerCase() });
   if (existingUser) {
     const Appointment = require('../models/Appointment');
-    const Record = require('../models/Record');
+    const MedicalRecord = require('../models/MedicalRecord');
     const hasAppointments = await Appointment.exists({
       $or: [{ patient: existingUser._id }, { doctor: existingUser._id }],
     });
-    const hasRecords = await Record.exists({ patient: existingUser._id });
+    const hasRecords = await MedicalRecord.exists({ patient: existingUser._id });
 
     if (hasAppointments || hasRecords) {
       return res.status(400).json({ success: false, message: 'An account with this email already exists' });
