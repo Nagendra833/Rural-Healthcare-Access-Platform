@@ -24,7 +24,7 @@ If symptoms sound urgent or severe (e.g. chest pain, difficulty breathing, sever
 // @route   POST /api/ai/chat
 // @access  Private
 const chat = asyncHandler(async (req, res) => {
-  const { message, history } = req.body;
+  const { message, history, language } = req.body;
 
   if (!message || !message.trim()) {
     return res.status(400).json({ success: false, message: 'Message is required' });
@@ -37,10 +37,27 @@ const chat = asyncHandler(async (req, res) => {
     });
   }
 
+  let dynamicInstruction = SYSTEM_INSTRUCTION;
+  if (language && language !== 'en') {
+    const langNames = {
+      te: 'Telugu (తెలుగు)',
+      hi: 'Hindi (हिन्दी)',
+      ta: 'Tamil (தமிழ்)',
+      bn: 'Bengali (বাংলা)',
+      es: 'Spanish (Español)',
+    };
+    const targetLang = langNames[language] || language;
+    dynamicInstruction += `\n\nCRITICAL MULTILINGUAL MANDATE:
+The patient is communicating in ${targetLang}.
+You MUST formulate your entire response in ${targetLang} using its authentic script (${targetLang}).
+DO NOT revert to English.
+Explain symptoms, reassuring medical advice, hydration, rest, home care, OTC medicine (such as Paracetamol for fever or aches), and warning signs for when to visit a Primary Health Centre or dial 108 in clear, empathetic ${targetLang}.`;
+  }
+
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   const model = genAI.getGenerativeModel({
     model: 'gemini-1.5-flash',
-    systemInstruction: SYSTEM_INSTRUCTION,
+    systemInstruction: dynamicInstruction,
   });
 
   // history is an array of { role: 'user'|'model', parts: [{ text }] } from the client

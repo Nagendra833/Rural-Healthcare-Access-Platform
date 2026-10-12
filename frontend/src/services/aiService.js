@@ -1,7 +1,7 @@
 import api from './api';
 
-export const sendChatMessage = (message, history) =>
-  api.post('/ai/chat', { message, history }).then((res) => res.data);
+export const sendChatMessage = (message, history, language) =>
+  api.post('/ai/chat', { message, history, language }).then((res) => res.data);
 
 export const analyzeMedicalDocument = (file) => {
   const formData = new FormData();

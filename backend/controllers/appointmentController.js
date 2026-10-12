@@ -115,13 +115,14 @@ const updateAppointment = asyncHandler(async (req, res) => {
   if (doctorName) appointment.doctorName = doctorName;
   if (doctor && mongoose.Types.ObjectId.isValid(doctor)) appointment.doctor = doctor;
   if (language) appointment.language = language;
-  if (date || timeSlot) appointment.status = 'rescheduled';
+  if (status) appointment.status = status;
+  else if (date || timeSlot) appointment.status = 'rescheduled';
 
   await appointment.save();
   res.status(200).json({ success: true, message: 'Appointment updated', appointment });
 });
 
-// @desc    Cancel/delete an appointment
+// @desc    Cancel an appointment or delete permanently if already cancelled
 // @route   DELETE /api/appointments/:id
 // @access  Private
 const cancelAppointment = asyncHandler(async (req, res) => {
@@ -135,12 +136,39 @@ const cancelAppointment = asyncHandler(async (req, res) => {
     (appointment.doctor && appointment.doctor.toString() === req.user._id.toString());
 
   if (!isOwner && req.user.role !== 'admin') {
-    return res.status(403).json({ success: false, message: 'Not authorized to cancel this appointment' });
+    return res.status(403).json({ success: false, message: 'Not authorized to modify this appointment' });
+  }
+
+  // If already cancelled or permanent query requested, remove from database
+  if (req.query.permanent === 'true' || appointment.status === 'cancelled') {
+    await Appointment.findByIdAndDelete(req.params.id);
+    return res.status(200).json({ success: true, message: 'Appointment removed permanently', deleted: true });
   }
 
   appointment.status = 'cancelled';
   await appointment.save();
-  res.status(200).json({ success: true, message: 'Appointment cancelled', appointment });
+  res.status(200).json({ success: true, message: 'Appointment moved to Cancelled', appointment });
 });
 
-module.exports = { getAppointments, bookAppointment, updateAppointment, cancelAppointment };
+// @desc    Permanently delete an appointment
+// @route   DELETE /api/appointments/:id/permanent
+// @access  Private
+const deleteAppointment = asyncHandler(async (req, res) => {
+  const appointment = await Appointment.findById(req.params.id);
+  if (!appointment) {
+    return res.status(404).json({ success: false, message: 'Appointment not found' });
+  }
+
+  const isOwner =
+    appointment.patient.toString() === req.user._id.toString() ||
+    (appointment.doctor && appointment.doctor.toString() === req.user._id.toString());
+
+  if (!isOwner && req.user.role !== 'admin') {
+    return res.status(403).json({ success: false, message: 'Not authorized to delete this appointment' });
+  }
+
+  await Appointment.findByIdAndDelete(req.params.id);
+  res.status(200).json({ success: true, message: 'Appointment permanently removed' });
+});
+
+module.exports = { getAppointments, bookAppointment, updateAppointment, cancelAppointment, deleteAppointment };

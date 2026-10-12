@@ -46,15 +46,15 @@ const SWITCH_MESSAGES = {
 };
 
 const QUICK_SYMPTOMS = {
-  en: ['Fever & Headache', 'Stomach Pain', 'Cough & Cold', 'Body Pain & Fatigue', 'Skin Rash or Itching'],
-  hi: ['बुखार और सिरदर्द', 'पेट में तेज दर्द', 'खांसी और जुकाम', 'शरीर दर्द और कमजोरी', 'त्वचा पर दाने / खुजली'],
-  te: ['తీవ్రమైన జ్వరం & తలనొప్పి', 'కడుపు నొప్పి', 'దగ్గు & జలుబు', 'ఒళ్ళు నొప్పులు & నీరసం', 'చర్మంపై దద్దుర్లు'],
-  ta: ['காய்ச்சல் மற்றும் தலைவலி', 'வயிற்று வலி', 'இருமல் மற்றும் சளி', 'உடல் வலி மற்றும் சோர்வு', 'தோல் அரிப்பு / தடிப்பு'],
-  bn: ['জ্বর ও মাথাব্যথা', 'পেটে ব্যথা', 'কাশি ও ঠান্ডা লাগা', 'গা হাত পা ব্যথা ও দুর্বলতা', 'ত্বকে চুলকানি বা ফুসকুড়ি'],
-  es: ['Fiebre y dolor de cabeza', 'Dolor estomacal', 'Tos y resfriado', 'Dolor corporal y fatiga', 'Erupción o picazón en la piel'],
+  en: ['Bone or Joint Swelling', 'Fever & Headache', 'Stomach Pain', 'Cough & Cold', 'Body Pain & Fatigue'],
+  hi: ['हड्डियों या जोड़ों में सूजन', 'बुखार और सिरदर्द', 'पेट में तेज दर्द', 'खांसी और जुकाम', 'शरीर दर्द और कमजोरी'],
+  te: ['ఎముకలు లేదా కీళ్ల వాపు', 'తీవ్రమైన జ్వరం & తలనొప్పి', 'కడుపు నొప్పి', 'దగ్గు & జలుబు', 'ఒళ్ళు నొప్పులు & నీరసం'],
+  ta: ['எலும்பு அல்லது மூட்டு வீக்கம்', 'காய்ச்சல் மற்றும் தலைவலி', 'வயிற்று வலி', 'இருமல் மற்றும் சளி', 'உடல் வலி மற்றும் சோர்வு'],
+  bn: ['হাড় বা জয়েন্ট ফোলা', 'জ্বর ও মাথাব্যথা', 'পেটে ব্যথা', 'কাশি ও ঠান্ডা লাগা', 'গা হাত পা ব্যথা ও দুর্বলতা'],
+  es: ['Hinchazón de huesos o articulaciones', 'Fiebre y dolor de cabeza', 'Dolor estomacal', 'Tos y resfriado', 'Dolor corporal y fatiga'],
 };
 
-export const TeleconsultationModal = ({ isOpen, onClose, appointment, currentUserRole }) => {
+export const TeleconsultationModal = ({ isOpen, onClose, appointment, currentUserRole, onMarkCompleted }) => {
   const { language: globalLang } = useLanguage();
   const { showToast } = useToast();
 
@@ -233,7 +233,7 @@ CRITICAL INSTRUCTIONS:
             parts: [{ text: m.text }],
           }));
 
-        const data = await sendChatMessage(aiPrompt, history);
+        const data = await sendChatMessage(aiPrompt, history, activeLangCode);
         const reply = data.reply || (
           activeLangCode === 'te'
             ? "నేను మీ సమస్యను అర్థం చేసుకున్నాను. దయచేసి పుష్కలంగా నీరు త్రాగి విశ్రాంతి తీసుకోండి. జ్వరం లేదా తలనొప్పి ఉంటే పారాసిటమాల్ 500mg తీసుకోండి. సమస్య తీవ్రమైతే వెంటనే సమీప ఆరోగ్య కేంద్రానికి వెళ్లండి."
@@ -824,15 +824,27 @@ CRITICAL INSTRUCTIONS:
             )}
           </button>
 
-          {/* End Call Button */}
-          <button
-            onClick={onClose}
-            className="h-11 px-5 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-emergencyGlow ml-2"
-            title="End Teleconsultation"
-          >
-            <PhoneOff size={18} />
-            <span className="text-xs">End Call</span>
-          </button>
+          {/* End Call & Complete Buttons */}
+          <div className="flex items-center gap-1.5 ml-2">
+            {onMarkCompleted && appointment?._id && (
+              <button
+                onClick={() => onMarkCompleted(appointment._id)}
+                className="h-11 px-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-1.5 transition active:scale-95 text-xs shadow-soft"
+                title="End consultation and move to Completed block"
+              >
+                <Check size={16} strokeWidth={2.5} />
+                <span className="hidden sm:inline">End & Complete</span>
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="h-11 px-4 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-emergencyGlow"
+              title="Close video window"
+            >
+              <PhoneOff size={16} />
+              <span className="text-xs">End Call</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

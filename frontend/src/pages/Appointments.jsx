@@ -16,10 +16,10 @@ import {
   bookAppointment,
   updateAppointment,
   cancelAppointment,
+  deleteAppointmentPermanent,
 } from '../services/appointmentService';
-import { Plus, Video, Bot, Sparkles, ShieldCheck, Mic, Globe, Check } from 'lucide-react';
+import { Plus, Video, Bot, Sparkles, ShieldCheck, Mic, Globe, Check, Trash2 } from 'lucide-react';
 
-// Language flag emojis
 const LANG_FLAGS = { en: '🇬🇧', hi: '🇮🇳', te: '🇮🇳', ta: '🇮🇳', bn: '🇮🇳', es: '🇪🇸' };
 
 const Appointments = () => {
@@ -33,10 +33,24 @@ const Appointments = () => {
   const [editingAppt, setEditingAppt] = useState(null);
   const [form, setForm] = useState({ reason: '', language: globalLang || 'en' });
   const [saving, setSaving] = useState(false);
-  const [filter, setFilter] = useState('all');
+  // Default to 'active' so completed/cancelled consultations go to their own blocks!
+  const [filter, setFilter] = useState('active');
 
   const appointments = data?.appointments || [];
-  const filtered = filter === 'all' ? appointments : appointments.filter((a) => a.status === filter);
+
+  const counts = {
+    active: appointments.filter((a) => !['cancelled', 'completed'].includes(a.status)).length,
+    completed: appointments.filter((a) => a.status === 'completed').length,
+    cancelled: appointments.filter((a) => a.status === 'cancelled').length,
+    all: appointments.length,
+  };
+
+  const filtered =
+    filter === 'active'
+      ? appointments.filter((a) => !['cancelled', 'completed'].includes(a.status))
+      : filter === 'all'
+      ? appointments
+      : appointments.filter((a) => a.status === filter);
 
   const openBookModal = () => {
     setEditingAppt(null);
@@ -88,17 +102,58 @@ const Appointments = () => {
     }
   };
 
+  // Move active consultation to Cancelled block
   const handleCancel = async (id) => {
     try {
       await cancelAppointment(id);
-      showToast('Consultation cancelled', 'info');
+      showToast('Consultation moved to Cancelled block', 'info');
       refetch();
     } catch (err) {
       showToast(err.response?.data?.message || 'Failed to cancel', 'error');
     }
   };
 
-  const statusOptions = ['all', 'pending', 'confirmed', 'completed', 'cancelled'];
+  // Move active consultation to Completed block
+  const handleComplete = async (id) => {
+    try {
+      await updateAppointment(id, { status: 'completed' });
+      showToast('Consultation completed and moved to Completed block', 'success');
+      refetch();
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to complete', 'error');
+    }
+  };
+
+  // Permanently delete consultation so it leaves the page forever
+  const handleDelete = async (id) => {
+    try {
+      await deleteAppointmentPermanent(id);
+      showToast('Consultation permanently removed', 'success');
+      refetch();
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to delete', 'error');
+    }
+  };
+
+  // Update consultation language right from the card
+  const handleUpdateLanguage = async (id, newLang) => {
+    try {
+      await updateAppointment(id, { language: newLang });
+      const conf = SUPPORTED_LANGUAGES.find((l) => l.code === newLang);
+      showToast(`Language set to ${conf?.native || newLang}`, 'success');
+      refetch();
+    } catch (err) {
+      showToast('Failed to update language', 'error');
+    }
+  };
+
+  const filterTabs = [
+    { key: 'active', label: 'Active Consultations', count: counts.active },
+    { key: 'completed', label: 'Completed Block', count: counts.completed },
+    { key: 'cancelled', label: 'Cancelled Block', count: counts.cancelled },
+    { key: 'all', label: 'All', count: counts.all },
+  ];
+
   const selectedLangConfig = SUPPORTED_LANGUAGES.find((l) => l.code === form.language) || SUPPORTED_LANGUAGES[0];
 
   return (
@@ -111,7 +166,7 @@ const Appointments = () => {
               AI Health Consultations
             </h2>
             <p className="text-sm text-gray-500 mt-0.5">
-              Instant 24/7 AI Doctor video consultation in your native language. No waiting, no scheduling needed.
+              Instant 24/7 AI Doctor video consultation in Telugu, Hindi, English, Tamil, Bengali & Spanish.
             </p>
           </div>
 
@@ -132,32 +187,39 @@ const Appointments = () => {
           <div className="grid sm:grid-cols-3 gap-3 text-xs text-gray-600">
             <div className="flex items-start gap-2">
               <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold mt-0.5">1</span>
-              <p><strong>Choose Language</strong> — Select Telugu, Hindi, English, Tamil, Bengali, or Spanish.</p>
+              <p><strong>Choose Language</strong> — Select your native language (e.g. తెలుగు, हिन्दी, English).</p>
             </div>
             <div className="flex items-start gap-2">
               <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold mt-0.5">2</span>
-              <p><strong>Describe Symptoms</strong> — Type or explain what you are experiencing.</p>
+              <p><strong>Describe Symptoms</strong> — Type or speak what you are experiencing.</p>
             </div>
             <div className="flex items-start gap-2">
               <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold mt-0.5">3</span>
-              <p><strong>Instant 24/7 Video Call</strong> — Speak directly with Dr. AI who listens and speaks in your language.</p>
+              <p><strong>Instant 24/7 Video Call</strong> — Dr. AI will listen and explain in your native language.</p>
             </div>
           </div>
         </div>
 
-        {/* Filter Pills */}
+        {/* Status Blocks Tabs */}
         <div className="flex gap-2 overflow-x-auto pb-2 mb-4 no-scrollbar">
-          {statusOptions.map((status) => (
+          {filterTabs.map((tab) => (
             <button
-              key={status}
-              onClick={() => setFilter(status)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize whitespace-nowrap transition ${
-                filter === status
+              key={tab.key}
+              onClick={() => setFilter(tab.key)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition flex items-center gap-1.5 ${
+                filter === tab.key
                   ? 'bg-primary text-white shadow-sm'
                   : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
               }`}
             >
-              {status}
+              <span>{tab.label}</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                  filter === tab.key ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {tab.count}
+              </span>
             </button>
           ))}
         </div>
@@ -171,9 +233,19 @@ const Appointments = () => {
         ) : filtered.length === 0 ? (
           <div className="card text-center py-12 text-sm text-gray-500 border border-dashed border-gray-200">
             <Bot size={36} className="mx-auto text-gray-300 mb-2" />
-            <p className="font-semibold text-gray-700">No consultations yet</p>
+            <p className="font-semibold text-gray-700">
+              {filter === 'active'
+                ? 'No active consultations'
+                : filter === 'completed'
+                ? 'No completed consultations in this block'
+                : filter === 'cancelled'
+                ? 'No cancelled consultations in this block'
+                : 'No consultations found'}
+            </p>
             <p className="text-xs text-gray-400 mt-1">
-              {filter !== 'all' ? `No consultations matching "${filter}".` : 'Start an AI consultation to get instant health guidance.'}
+              {filter === 'active'
+                ? 'Click "Start Consultation" to start a new instant AI video consultation.'
+                : 'Items will appear here when completed or cancelled.'}
             </p>
           </div>
         ) : (
@@ -184,7 +256,10 @@ const Appointments = () => {
                   appointment={appt}
                   viewerRole={user?.role}
                   onCancel={handleCancel}
+                  onComplete={handleComplete}
+                  onDelete={handleDelete}
                   onReschedule={openRescheduleModal}
+                  onUpdateLanguage={handleUpdateLanguage}
                   onJoinCall={(a) => setActiveVideoAppt(a)}
                 />
               </StaggerItem>
@@ -201,6 +276,10 @@ const Appointments = () => {
           }}
           appointment={activeVideoAppt}
           currentUserRole={user?.role}
+          onMarkCompleted={(id) => {
+            handleComplete(id);
+            setActiveVideoAppt(null);
+          }}
         />
 
         {/* Book / Update Consultation Modal */}
@@ -209,7 +288,6 @@ const Appointments = () => {
           onClose={() => setModalOpen(false)}
           title={editingAppt ? 'Update Consultation' : 'Start Instant AI Health Consultation'}
         >
-          {/* AI consultation explainer */}
           {!editingAppt && (
             <div className="mb-4 p-3 rounded-lg bg-gradient-to-br from-primary/5 to-blue-50 border border-primary/10">
               <div className="flex items-center gap-2 mb-1.5">
@@ -217,7 +295,7 @@ const Appointments = () => {
                 <span className="text-sm font-semibold text-gray-800">24/7 AI Doctor Video Consultation</span>
               </div>
               <p className="text-xs text-gray-600 leading-relaxed">
-                Connect instantly with Dr. AI. Select your native language below — the AI will <strong>listen, understand, and speak aloud</strong> in your language throughout the video call.
+                Connect instantly with Dr. AI. Select your native language below — the AI will <strong>listen, understand, and explain aloud</strong> in your language throughout the video call.
               </p>
               <div className="flex items-center gap-3 mt-2.5 text-[11px] text-gray-500">
                 <span className="flex items-center gap-1"><Globe size={11} /> 6 Languages</span>
@@ -241,7 +319,7 @@ const Appointments = () => {
                 </span>
               </label>
               <p className="text-[11px] text-gray-400 mb-2.5">
-                The AI Doctor will speak, listen, and provide clinical guidance in this language.
+                The AI Doctor will speak, listen, and explain clinical guidance in this language.
               </p>
 
               {/* Visual language cards */}
@@ -276,11 +354,11 @@ const Appointments = () => {
                 })}
               </div>
 
-              {/* Selected language confirmation banner */}
+              {/* Selected language banner */}
               <div className="mt-2.5 px-3 py-2 rounded-xl bg-primary/5 border border-primary/15 flex items-center gap-2">
                 <span className="text-base">{LANG_FLAGS[form.language] || '🌐'}</span>
                 <p className="text-xs text-gray-700">
-                  AI Doctor will converse in <strong className="text-primary font-bold">{selectedLangConfig.native} ({selectedLangConfig.name})</strong>
+                  AI Doctor will speak and listen in <strong className="text-primary font-bold">{selectedLangConfig.native} ({selectedLangConfig.name})</strong>
                 </p>
               </div>
             </div>
