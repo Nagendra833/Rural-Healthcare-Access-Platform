@@ -1,59 +1,75 @@
 import React from 'react';
-import { Calendar, Clock, User, X, Edit2 } from 'lucide-react';
+import { Calendar, Clock, User, X, Edit2, Video, Phone } from 'lucide-react';
 import { formatDate, statusColor } from '../utils/formatters';
 
-const AppointmentCard = ({ appointment, viewerRole, onCancel, onReschedule }) => {
+const AppointmentCard = ({ appointment, viewerRole, onCancel, onReschedule, onJoinCall }) => {
   const personLabel = viewerRole === 'doctor' ? appointment.patient?.fullName : `Dr. ${appointment.doctor?.fullName}`;
   const subLabel = viewerRole === 'doctor' ? appointment.patient?.phone : appointment.doctor?.specialization;
 
+  const canJoinCall = ['confirmed', 'rescheduled', 'pending'].includes(appointment.status);
+
   return (
-    <div className="card">
+    <div className="card card-hover border border-gray-100 hover:border-primary/40 transition">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
             <User size={18} className="text-primary" />
           </div>
           <div>
-            <p className="font-medium">{personLabel}</p>
+            <p className="font-bold text-sm text-gray-900">{personLabel}</p>
             <p className="text-xs text-gray-500">{subLabel}</p>
           </div>
         </div>
-        <span className={`text-xs px-2.5 py-1 rounded-full font-medium capitalize ${statusColor(appointment.status)}`}>
+        <span className={`text-xs px-2.5 py-1 rounded-full font-semibold capitalize ${statusColor(appointment.status)}`}>
           {appointment.status}
         </span>
       </div>
 
-      <p className="text-sm text-gray-600 mt-3">{appointment.reason}</p>
+      <p className="text-xs text-gray-600 mt-3 bg-surface p-2.5 rounded-lg border border-gray-100">
+        <span className="font-medium text-gray-700">Reason:</span> {appointment.reason || 'General Health Consultation'}
+      </p>
 
-      <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
+      <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
         <span className="flex items-center gap-1">
-          <Calendar size={14} /> {formatDate(appointment.date)}
+          <Calendar size={13} /> {formatDate(appointment.date)}
         </span>
-        <span className="flex items-center gap-1">
-          <Clock size={14} /> {appointment.timeSlot}
+        <span className="flex items-center gap-1 font-medium text-gray-700">
+          <Clock size={13} /> {appointment.timeSlot}
         </span>
       </div>
 
-      {(onCancel || onReschedule) && appointment.status !== 'cancelled' && appointment.status !== 'completed' && (
-        <div className="flex gap-2 mt-4">
-          {onReschedule && (
+      {/* Action buttons including Telemedicine video room */}
+      <div className="flex flex-wrap items-center justify-between gap-2 mt-4 pt-3 border-t border-gray-100">
+        {canJoinCall && onJoinCall ? (
+          <button
+            onClick={() => onJoinCall(appointment)}
+            className="btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5"
+          >
+            <Video size={13} /> Join Video Call
+          </button>
+        ) : (
+          <div />
+        )}
+
+        <div className="flex items-center gap-3 text-xs">
+          {onReschedule && appointment.status !== 'cancelled' && appointment.status !== 'completed' && (
             <button
               onClick={() => onReschedule(appointment)}
-              className="text-sm flex items-center gap-1 text-primary hover:underline"
+              className="flex items-center gap-1 text-primary hover:underline font-medium"
             >
-              <Edit2 size={14} /> Reschedule
+              <Edit2 size={13} /> Reschedule
             </button>
           )}
-          {onCancel && (
+          {onCancel && appointment.status !== 'cancelled' && appointment.status !== 'completed' && (
             <button
               onClick={() => onCancel(appointment._id)}
-              className="text-sm flex items-center gap-1 text-red-600 hover:underline"
+              className="flex items-center gap-1 text-red-600 hover:underline font-medium"
             >
-              <X size={14} /> Cancel
+              <X size={13} /> Cancel
             </button>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

@@ -4,11 +4,51 @@ A full-stack web application that connects patients, doctors, and community heal
 
 ## Tech Stack
 
-- **Frontend:** React (Vite), Tailwind CSS, React Router, Axios, Lucide React icons, Recharts
+- **Frontend:** React (Vite), Tailwind CSS, Framer Motion, Leaflet, React Router, Axios, Lucide React icons, Recharts, Canvas Confetti, QR Code
 - **Backend:** Node.js, Express.js
 - **Database:** MongoDB with Mongoose
 - **Authentication:** JWT + bcrypt
-- **AI:** Google Gemini API (`@google/generative-ai`)
+- **AI & Vision:** Google Gemini API (`@google/generative-ai`) for Chat & Medical OCR
+- **Accessibility & PWA:** Web Speech API (Voice-to-Text & Text-to-Speech), Multi-language Support (6 languages), Offline Sync Queue, Service Worker Caching
+
+## ✨ Newly Added Features & Animations
+
+1. **Fluid Framer Motion Animations & Skeletons:**
+   - Smooth page transitions and staggered entry animations for cards and lists.
+   - Shimmer skeleton loaders replacing generic spinners for instant perceived speed.
+   - Interactive confetti bursts and audio chime feedback upon appointment booking, prescription issue, or streak achievements.
+
+2. **Multilingual (i18n) & Voice AI for Rural Accessibility:**
+   - Real-time Language Switcher supporting English, हिन्दी (Hindi), తెలుగు (Telugu), தமிழ் (Tamil), বাংলা (Bengali), and Español (Spanish).
+   - Voice Input (Speech-to-Text) using Web Speech API: patients can speak symptoms in their local language.
+   - Read Aloud (Text-to-Speech): audio recitation of health guidance for elderly and low-literacy patients.
+
+3. **Interactive Emergency SOS Beacon:**
+   - 2.5-second hold-to-activate circular progress button to prevent accidental alerts.
+   - Animated radar pulse wave rings, emergency siren audio tone, and automatic GPS coordinate capture.
+   - Instant 108 ambulance dispatch and WhatsApp emergency location sharing.
+
+4. **Telemedicine Virtual Consultation Room:**
+   - Live video room preview for confirmed appointments with webcam self-view (`getUserMedia`).
+   - Mute/unmute microphone, camera toggle, and in-call clinical notes drawer.
+   - Low-bandwidth audio mode optimized for 2G/3G rural networks.
+
+5. **Interactive Village Map with Real-time GPS Distance:**
+   - Embedded Leaflet map showing Primary Health Centres (PHC), Community Health Centres (CHC), and hospitals.
+   - Live distance calculator (in kilometers) from the user's location with direct "Get Directions" navigation.
+
+6. **Medication Routine Tracker & QR Prescriptions:**
+   - Daily pill schedule tracker (☀️ Morning, 🌤️ Afternoon, 🌙 Night) with audio chimes and adherence streak counter.
+   - Offline-scannable QR code generated for every prescription, enabling rural pharmacists to verify medicine and dosage instantly.
+   - Printable / PDF export view for patient prescriptions.
+
+7. **Gemini Vision Medical Document Scanner (OCR):**
+   - Upload or photograph handwritten prescriptions or diagnostic lab reports.
+   - Extracts diagnoses, medications, dosages, and lab test values with plain-language explanations.
+
+8. **Offline Resilience & PWA Support:**
+   - PWA manifest and Service Worker for mobile homescreen installation.
+   - Automatic offline queue and sync badge that tracks pending changes and synchronizes once connectivity is restored.
 
 ## Project Structure
 
