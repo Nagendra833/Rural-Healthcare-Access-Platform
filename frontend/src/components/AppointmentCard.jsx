@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, X, Edit2, Video, Bot, Sparkles, Globe } from 'lucide-react';
+import { X, Edit2, Video, Bot, Sparkles, Globe, Zap } from 'lucide-react';
 import { statusColor } from '../utils/formatters';
 import { SUPPORTED_LANGUAGES } from '../context/LanguageContext';
 
@@ -35,13 +35,14 @@ const AppointmentCard = ({ appointment, viewerRole, onCancel, onReschedule, onJo
       </p>
 
       <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
-        <span className="flex items-center gap-1 font-medium text-gray-700">
-          <Clock size={13} /> {appointment.timeSlot}
+        <span className="flex items-center gap-1.5 font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100 text-[11px]">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          Instant Call (24×7 Available)
         </span>
         {/* Language Badge */}
-        <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-200/60 text-indigo-700 font-semibold text-[11px]">
+        <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-200/60 text-indigo-700 font-bold text-[11px]">
           <Globe size={11} />
-          {LANG_FLAGS[langCode] || '🌐'} {langConfig.native}
+          {LANG_FLAGS[langCode] || '🌐'} {langConfig.native} ({langConfig.name})
         </span>
       </div>
 

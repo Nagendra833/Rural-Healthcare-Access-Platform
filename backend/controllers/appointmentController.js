@@ -34,11 +34,11 @@ const getAppointments = asyncHandler(async (req, res) => {
 const bookAppointment = asyncHandler(async (req, res) => {
   let { doctor, doctorName, date, timeSlot, reason, language } = req.body;
 
-  const doctorInput = (doctorName || doctor || '').toString().trim();
-  if (!doctorInput || !date || !timeSlot || !reason) {
-    return res.status(400).json({ success: false, message: 'All appointment fields are required' });
+  if (!reason || !reason.trim()) {
+    return res.status(400).json({ success: false, message: 'Please describe your symptoms' });
   }
 
+  const doctorInput = (doctorName || doctor || 'AI Health Assistant').toString().trim();
   let doctorId = null;
   let resolvedDoctorName = doctorInput;
 
@@ -51,8 +51,8 @@ const bookAppointment = asyncHandler(async (req, res) => {
     }
   }
 
-  // 2. If no valid ObjectId yet, search for doctor by name
-  if (!doctorId && doctorInput) {
+  // 2. If doctor name was given and not the default AI Health Assistant
+  if (!doctorId && doctorInput && doctorInput !== 'AI Health Assistant') {
     const cleanName = doctorInput.replace(/^dr\.?\s*/i, '').trim();
     const docUser = await User.findOne({
       role: 'doctor',
@@ -63,9 +63,7 @@ const bookAppointment = asyncHandler(async (req, res) => {
       doctorId = docUser._id;
       resolvedDoctorName = docUser.fullName;
     } else {
-      // If user typed a custom doctor name, format it nicely
       resolvedDoctorName = doctorInput.startsWith('Dr.') ? doctorInput : `Dr. ${doctorInput}`;
-      // Optionally link with an approved doctor if available
       const fallbackDoc = await User.findOne({ role: 'doctor', isApproved: true });
       if (fallbackDoc) {
         doctorId = fallbackDoc._id;
@@ -77,9 +75,9 @@ const bookAppointment = asyncHandler(async (req, res) => {
     patient: req.user._id,
     doctor: doctorId,
     doctorName: resolvedDoctorName,
-    date,
-    timeSlot,
-    reason,
+    date: date || new Date(),
+    timeSlot: timeSlot || 'Instant 24x7',
+    reason: reason.trim(),
     language: language || 'en',
     status: 'pending',
   });
