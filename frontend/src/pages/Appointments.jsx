@@ -16,7 +16,7 @@ import {
   cancelAppointment,
 } from '../services/appointmentService';
 import { getDoctors } from '../services/userService';
-import { Plus, Video, Calendar, Filter } from 'lucide-react';
+import { Plus, Video, Calendar, Filter, UserCheck, Stethoscope } from 'lucide-react';
 
 const Appointments = () => {
   const { user } = useAuth();
@@ -24,10 +24,13 @@ const Appointments = () => {
   const { data, loading, refetch } = useFetch(getAppointments, []);
   const { data: doctorData } = useFetch(getDoctors, []);
 
+  // Correctly extract doctors whether backend returns 'doctors' or 'users'
+  const doctorsList = doctorData?.doctors || doctorData?.users || [];
+
   const [modalOpen, setModalOpen] = useState(false);
   const [activeVideoAppt, setActiveVideoAppt] = useState(null);
   const [editingAppt, setEditingAppt] = useState(null);
-  const [form, setForm] = useState({ doctor: '', date: '', timeSlot: '', reason: '' });
+  const [form, setForm] = useState({ doctor: '', doctorName: '', date: '', timeSlot: '', reason: '' });
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState('all');
 
@@ -36,7 +39,7 @@ const Appointments = () => {
 
   const openBookModal = () => {
     setEditingAppt(null);
-    setForm({ doctor: '', date: '', timeSlot: '', reason: '' });
+    setForm({ doctor: '', doctorName: '', date: '', timeSlot: '', reason: '' });
     setModalOpen(true);
   };
 
@@ -44,6 +47,7 @@ const Appointments = () => {
     setEditingAppt(appt);
     setForm({
       doctor: appt.doctor?._id || '',
+      doctorName: appt.doctor?.fullName || appt.doctorName || '',
       date: appt.date?.slice(0, 10) || '',
       timeSlot: appt.timeSlot,
       reason: appt.reason,
@@ -51,15 +55,51 @@ const Appointments = () => {
     setModalOpen(true);
   };
 
+  const handleDoctorInputChange = (val) => {
+    // Check if entered text matches one of the registered doctors
+    const matched = doctorsList.find(
+      (d) =>
+        d.fullName.toLowerCase() === val.toLowerCase() ||
+        `dr. ${d.fullName.toLowerCase()}` === val.toLowerCase()
+    );
+
+    if (matched) {
+      setForm((prev) => ({ ...prev, doctor: matched._id, doctorName: matched.fullName }));
+    } else {
+      setForm((prev) => ({ ...prev, doctor: '', doctorName: val }));
+    }
+  };
+
+  const selectDoctorQuick = (doc) => {
+    setForm((prev) => ({
+      ...prev,
+      doctor: doc._id,
+      doctorName: doc.fullName.startsWith('Dr.') ? doc.fullName : `Dr. ${doc.fullName}`,
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form.doctorName && !form.doctor) {
+      showToast('Please enter or select a doctor name', 'error');
+      return;
+    }
+
     setSaving(true);
     try {
+      const payload = {
+        doctor: form.doctor || undefined,
+        doctorName: form.doctorName || undefined,
+        date: form.date,
+        timeSlot: form.timeSlot,
+        reason: form.reason,
+      };
+
       if (editingAppt) {
-        await updateAppointment(editingAppt._id, form);
+        await updateAppointment(editingAppt._id, payload);
         showToast('Appointment rescheduled successfully!', 'success');
       } else {
-        await bookAppointment(form);
+        await bookAppointment(payload);
         triggerConfetti();
         showToast('Appointment booked! Reminder queued.', 'success');
       }
@@ -168,20 +208,69 @@ const Appointments = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {!editingAppt && (
               <div>
-                <label className="label-text">Select Doctor</label>
-                <select
-                  className="input-field text-sm"
-                  value={form.doctor}
-                  onChange={(e) => setForm({ ...form, doctor: e.target.value })}
-                  required
-                >
-                  <option value="">Select a physician</option>
-                  {(doctorData?.users || []).map((doc) => (
-                    <option key={doc._id} value={doc._id}>
-                      Dr. {doc.fullName} ({doc.specialization || 'General Medicine'})
+                <label className="label-text flex items-center justify-between">
+                  <span>Enter Doctor Name</span>
+                  <span className="text-[11px] text-gray-400 font-normal">Type or select physician</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    list="registered-doctors"
+                    placeholder="Enter physician name (e.g., Dr. Ananya Rao, Dr. Ramesh)"
+                    className="input-field text-sm pr-9"
+                    value={form.doctorName}
+                    onChange={(e) => handleDoctorInputChange(e.target.value)}
+                    required
+                  />
+                  <div className="absolute right-3 top-3 text-gray-400 pointer-events-none">
+                    <Stethoscope size={16} />
+                  </div>
+                </div>
+
+                {/* HTML5 datalist for instant autocomplete suggestions */}
+                <datalist id="registered-doctors">
+                  {doctorsList.map((doc) => (
+                    <option key={doc._id} value={doc.fullName}>
+                      {doc.specialization ? `${doc.specialization} • Rural Care` : 'General Physician'}
                     </option>
                   ))}
-                </select>
+                  <option value="Dr. Ananya Rao">General Physician</option>
+                  <option value="Dr. Ramesh Kumar">Rural Medical Officer</option>
+                </datalist>
+
+                {/* Quick suggestion badges if doctors exist */}
+                <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                  <span className="text-[11px] text-gray-400">Available:</span>
+                  {doctorsList.length > 0 ? (
+                    doctorsList.map((doc) => (
+                      <button
+                        type="button"
+                        key={doc._id}
+                        onClick={() => selectDoctorQuick(doc)}
+                        className={`text-[11px] px-2 py-0.5 rounded-full border transition active:scale-95 ${
+                          form.doctor === doc._id || form.doctorName === doc.fullName
+                            ? 'bg-primary text-white border-primary font-medium'
+                            : 'bg-accent/60 text-primary border-primary/20 hover:bg-accent'
+                        }`}
+                      >
+                        + Dr. {doc.fullName.replace(/^dr\.?\s*/i, '')}
+                      </button>
+                    ))
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setForm((prev) => ({
+                          ...prev,
+                          doctorName: 'Dr. Ananya Rao',
+                        }))
+                      }
+                      className="text-[11px] px-2 py-0.5 rounded-full bg-accent text-primary border border-primary/20 hover:bg-accent/80 transition"
+                    >
+                      + Dr. Ananya Rao (Duty Doctor)
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 

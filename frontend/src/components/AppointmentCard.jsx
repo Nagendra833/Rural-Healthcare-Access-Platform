@@ -3,8 +3,18 @@ import { Calendar, Clock, User, X, Edit2, Video, Phone } from 'lucide-react';
 import { formatDate, statusColor } from '../utils/formatters';
 
 const AppointmentCard = ({ appointment, viewerRole, onCancel, onReschedule, onJoinCall }) => {
-  const personLabel = viewerRole === 'doctor' ? appointment.patient?.fullName : `Dr. ${appointment.doctor?.fullName}`;
-  const subLabel = viewerRole === 'doctor' ? appointment.patient?.phone : appointment.doctor?.specialization;
+  const docDisplayName = appointment.doctor?.fullName || appointment.doctorName || 'Doctor';
+  const personLabel =
+    viewerRole === 'doctor'
+      ? appointment.patient?.fullName
+      : docDisplayName.startsWith('Dr.')
+      ? docDisplayName
+      : `Dr. ${docDisplayName}`;
+
+  const subLabel =
+    viewerRole === 'doctor'
+      ? appointment.patient?.phone
+      : appointment.doctor?.specialization || 'General Physician';
 
   const canJoinCall = ['confirmed', 'rescheduled', 'pending'].includes(appointment.status);
 
