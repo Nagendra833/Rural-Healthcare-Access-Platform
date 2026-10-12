@@ -10,19 +10,38 @@ export const AuthProvider = ({ children }) => {
 
   // Restore session from localStorage on mount (session persistence)
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
+    try {
+      const storedUser = localStorage.getItem('user');
+      const token = localStorage.getItem('token');
+      if (
+        storedUser &&
+        token &&
+        storedUser !== 'undefined' &&
+        storedUser !== 'null' &&
+        storedUser.startsWith('{')
+      ) {
+        const parsed = JSON.parse(storedUser);
+        if (parsed && typeof parsed === 'object') {
+          setUser(parsed);
+        }
+      } else if (storedUser || token) {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      }
+    } catch (e) {
+      console.warn('Session restoration failed:', e);
+      try {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      } catch {}
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const login = useCallback(async (credentials, rememberMe) => {
     const data = await loginUser(credentials);
     setUser(data.user);
-    // "Remember me" simply controls whether we treat this as a long-lived session;
-    // in both cases the JWT itself already carries its own expiry.
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
     localStorage.setItem('rememberMe', rememberMe ? 'true' : 'false');

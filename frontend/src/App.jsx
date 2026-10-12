@@ -27,7 +27,7 @@ import AdminReports from './pages/AdminReports';
 import NotFound from './pages/NotFound';
 
 function App() {
-  const { loading } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) return <LoadingSpinner fullScreen />;
 
@@ -66,7 +66,7 @@ function App() {
       <Route path="/admin-reports" element={<ProtectedRoute allowedRoles={['admin']}><AdminReports /></ProtectedRoute>} />
 
       {/* Root redirect */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
 
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
