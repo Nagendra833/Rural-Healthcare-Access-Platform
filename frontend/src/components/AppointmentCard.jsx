@@ -1,9 +1,14 @@
 import React from 'react';
-import { Clock, X, Edit2, Video, Bot, Sparkles } from 'lucide-react';
+import { Clock, X, Edit2, Video, Bot, Sparkles, Globe } from 'lucide-react';
 import { statusColor } from '../utils/formatters';
+import { SUPPORTED_LANGUAGES } from '../context/LanguageContext';
+
+const LANG_FLAGS = { en: '🇬🇧', hi: '🇮🇳', te: '🇮🇳', ta: '🇮🇳', bn: '🇮🇳', es: '🇪🇸' };
 
 const AppointmentCard = ({ appointment, viewerRole, onCancel, onReschedule, onJoinCall }) => {
   const canJoinCall = ['confirmed', 'rescheduled', 'pending'].includes(appointment.status);
+  const langCode = appointment.language || 'en';
+  const langConfig = SUPPORTED_LANGUAGES.find((l) => l.code === langCode) || SUPPORTED_LANGUAGES[0];
 
   return (
     <div className="card card-hover border border-gray-100 hover:border-primary/40 transition">
@@ -33,8 +38,10 @@ const AppointmentCard = ({ appointment, viewerRole, onCancel, onReschedule, onJo
         <span className="flex items-center gap-1 font-medium text-gray-700">
           <Clock size={13} /> {appointment.timeSlot}
         </span>
-        <span className="text-[11px] text-gray-400">
-          Speak freely — AI listens & responds
+        {/* Language Badge */}
+        <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-200/60 text-indigo-700 font-semibold text-[11px]">
+          <Globe size={11} />
+          {LANG_FLAGS[langCode] || '🌐'} {langConfig.native}
         </span>
       </div>
 
@@ -75,4 +82,3 @@ const AppointmentCard = ({ appointment, viewerRole, onCancel, onReschedule, onJo
 };
 
 export default AppointmentCard;
-

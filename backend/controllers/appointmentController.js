@@ -32,7 +32,7 @@ const getAppointments = asyncHandler(async (req, res) => {
 // @route   POST /api/appointments
 // @access  Private/Patient
 const bookAppointment = asyncHandler(async (req, res) => {
-  let { doctor, doctorName, date, timeSlot, reason } = req.body;
+  let { doctor, doctorName, date, timeSlot, reason, language } = req.body;
 
   const doctorInput = (doctorName || doctor || '').toString().trim();
   if (!doctorInput || !date || !timeSlot || !reason) {
@@ -80,6 +80,7 @@ const bookAppointment = asyncHandler(async (req, res) => {
     date,
     timeSlot,
     reason,
+    language: language || 'en',
     status: 'pending',
   });
 
@@ -107,7 +108,7 @@ const updateAppointment = asyncHandler(async (req, res) => {
     return res.status(403).json({ success: false, message: 'Not authorized to modify this appointment' });
   }
 
-  const { date, timeSlot, reason, status, notes, doctor, doctorName } = req.body;
+  const { date, timeSlot, reason, status, notes, doctor, doctorName, language } = req.body;
   if (date) appointment.date = date;
   if (timeSlot) appointment.timeSlot = timeSlot;
   if (reason) appointment.reason = reason;
@@ -115,6 +116,7 @@ const updateAppointment = asyncHandler(async (req, res) => {
   if (notes !== undefined) appointment.notes = notes;
   if (doctorName) appointment.doctorName = doctorName;
   if (doctor && mongoose.Types.ObjectId.isValid(doctor)) appointment.doctor = doctor;
+  if (language) appointment.language = language;
   if (date || timeSlot) appointment.status = 'rescheduled';
 
   await appointment.save();

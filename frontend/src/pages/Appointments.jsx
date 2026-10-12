@@ -9,13 +9,17 @@ import { useAuth } from '../hooks/useAuth';
 import { useFetch } from '../hooks/useFetch';
 import { useToast } from '../context/ToastContext';
 import { triggerConfetti } from '../utils/confetti';
+import { SUPPORTED_LANGUAGES } from '../context/LanguageContext';
 import {
   getAppointments,
   bookAppointment,
   updateAppointment,
   cancelAppointment,
 } from '../services/appointmentService';
-import { Plus, Video, Calendar, Bot, Sparkles, ShieldCheck, Mic } from 'lucide-react';
+import { Plus, Video, Bot, Sparkles, ShieldCheck, Mic, Globe } from 'lucide-react';
+
+// Language flag emojis for visual flair
+const LANG_FLAGS = { en: '🇬🇧', hi: '🇮🇳', te: '🇮🇳', ta: '🇮🇳', bn: '🇮🇳', es: '🇪🇸' };
 
 const Appointments = () => {
   const { user } = useAuth();
@@ -25,7 +29,7 @@ const Appointments = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [activeVideoAppt, setActiveVideoAppt] = useState(null);
   const [editingAppt, setEditingAppt] = useState(null);
-  const [form, setForm] = useState({ timeSlot: '', reason: '' });
+  const [form, setForm] = useState({ timeSlot: '', reason: '', language: 'en' });
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState('all');
 
@@ -34,7 +38,7 @@ const Appointments = () => {
 
   const openBookModal = () => {
     setEditingAppt(null);
-    setForm({ timeSlot: '', reason: '' });
+    setForm({ timeSlot: '', reason: '', language: 'en' });
     setModalOpen(true);
   };
 
@@ -43,6 +47,7 @@ const Appointments = () => {
     setForm({
       timeSlot: appt.timeSlot,
       reason: appt.reason,
+      language: appt.language || 'en',
     });
     setModalOpen(true);
   };
@@ -57,6 +62,7 @@ const Appointments = () => {
         date: new Date().toISOString().split('T')[0],
         timeSlot: form.timeSlot,
         reason: form.reason,
+        language: form.language,
       };
 
       if (editingAppt) {
@@ -87,6 +93,8 @@ const Appointments = () => {
   };
 
   const statusOptions = ['all', 'pending', 'confirmed', 'completed', 'cancelled'];
+
+  const selectedLangConfig = SUPPORTED_LANGUAGES.find((l) => l.code === form.language) || SUPPORTED_LANGUAGES[0];
 
   return (
     <DashboardLayout>
@@ -119,15 +127,15 @@ const Appointments = () => {
           <div className="grid sm:grid-cols-3 gap-3 text-xs text-gray-600">
             <div className="flex items-start gap-2">
               <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold mt-0.5">1</span>
-              <p><strong>Describe Symptoms</strong> — Tell us what you're experiencing so our AI can prepare for your session.</p>
+              <p><strong>Choose Language</strong> — Select the language you are most comfortable speaking in.</p>
             </div>
             <div className="flex items-start gap-2">
               <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold mt-0.5">2</span>
-              <p><strong>Join AI Video Call</strong> — Speak directly with the AI Doctor. It listens, asks follow-up questions, and analyses your symptoms in real-time.</p>
+              <p><strong>Describe Symptoms</strong> — Tell us what you're experiencing. The AI will listen and understand in your language.</p>
             </div>
             <div className="flex items-start gap-2">
               <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold mt-0.5">3</span>
-              <p><strong>Get Guidance</strong> — Receive personalised health suggestions, home remedies, and advice on whether to visit a clinic.</p>
+              <p><strong>Get AI Guidance</strong> — Join the video call and speak freely. The AI Doctor responds in your chosen language.</p>
             </div>
           </div>
         </div>
@@ -202,10 +210,11 @@ const Appointments = () => {
               </div>
               <p className="text-xs text-gray-600 leading-relaxed">
                 You will be connected to our <strong>AI Health Assistant</strong> via a secure video call.
-                Simply <strong>speak about your symptoms</strong> — the AI will listen, ask clarifying questions,
-                and provide personalised health suggestions in real-time. No doctor selection needed.
+                Simply <strong>speak about your symptoms</strong> in your preferred language — the AI will listen,
+                ask clarifying questions, and provide personalised health suggestions in real-time.
               </p>
               <div className="flex items-center gap-3 mt-2.5 text-[11px] text-gray-500">
+                <span className="flex items-center gap-1"><Globe size={11} /> Multi-Language</span>
                 <span className="flex items-center gap-1"><Mic size={11} /> Voice Enabled</span>
                 <span className="flex items-center gap-1"><ShieldCheck size={11} /> Private & Secure</span>
                 <span className="flex items-center gap-1"><Sparkles size={11} /> Instant Guidance</span>
@@ -214,6 +223,47 @@ const Appointments = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Language Selector */}
+            <div>
+              <label className="label-text flex items-center gap-1.5">
+                <Globe size={14} className="text-primary" />
+                Consultation Language
+              </label>
+              <p className="text-[11px] text-gray-400 mb-2">
+                The AI Doctor will listen, understand, and respond in your selected language.
+              </p>
+
+              {/* Visual language cards */}
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                {SUPPORTED_LANGUAGES.map((lang) => (
+                  <button
+                    type="button"
+                    key={lang.code}
+                    onClick={() => setForm({ ...form, language: lang.code })}
+                    className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border-2 transition-all duration-200 active:scale-95 ${
+                      form.language === lang.code
+                        ? 'border-primary bg-primary/5 shadow-sm ring-2 ring-primary/20'
+                        : 'border-gray-200 bg-white hover:border-primary/30 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="text-lg">{LANG_FLAGS[lang.code] || '🌐'}</span>
+                    <span className={`text-[11px] font-bold ${form.language === lang.code ? 'text-primary' : 'text-gray-700'}`}>
+                      {lang.native}
+                    </span>
+                    <span className="text-[9px] text-gray-400">{lang.name}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Selected language confirmation */}
+              <div className="mt-2 px-3 py-1.5 rounded-lg bg-primary/5 border border-primary/10 flex items-center gap-2">
+                <span className="text-sm">{LANG_FLAGS[form.language] || '🌐'}</span>
+                <span className="text-xs text-gray-700">
+                  AI will speak in <strong className="text-primary">{selectedLangConfig.native} ({selectedLangConfig.name})</strong>
+                </span>
+              </div>
+            </div>
+
             <div>
               <label className="label-text">Preferred Time Slot</label>
               <select
@@ -250,7 +300,7 @@ const Appointments = () => {
             <button type="submit" className="btn-primary w-full text-sm py-2.5 flex items-center justify-center gap-2" disabled={saving}>
               {saving ? 'Processing...' : editingAppt ? 'Update Consultation' : (
                 <>
-                  <Video size={15} /> Start AI Consultation
+                  <Video size={15} /> Start AI Consultation in {selectedLangConfig.native}
                 </>
               )}
             </button>

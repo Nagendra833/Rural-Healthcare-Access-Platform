@@ -20,12 +20,20 @@ import {
 } from 'lucide-react';
 import { sendChatMessage, analyzeMedicalDocument } from '../services/aiService';
 import { useLanguage } from '../context/LanguageContext';
+import { SUPPORTED_LANGUAGES } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { playChimeSound, triggerConfetti } from '../utils/confetti';
 
 export const TeleconsultationModal = ({ isOpen, onClose, appointment, currentUserRole }) => {
   const { currentLangConfig, language } = useLanguage();
   const { showToast } = useToast();
+
+  // Per-appointment language config — overrides global language for this call
+  const apptLangCode = appointment?.language || language || 'en';
+  const apptLangConfig = SUPPORTED_LANGUAGES.find((l) => l.code === apptLangCode) || currentLangConfig;
+  const speechCode = apptLangConfig?.speechCode || 'en-US';
+  const langName = apptLangConfig?.name || 'English';
+  const langNative = apptLangConfig?.native || 'English';
 
   const [micOn, setMicOn] = useState(true);
   const [videoOn, setVideoOn] = useState(true);
@@ -72,7 +80,7 @@ export const TeleconsultationModal = ({ isOpen, onClose, appointment, currentUse
       }
 
       const utterance = new SpeechSynthesisUtterance(textToSpeak);
-      utterance.lang = currentLangConfig?.speechCode || 'en-US';
+      utterance.lang = speechCode;
       utterance.rate = 0.92; // Natural, clear physician tempo
       utterance.pitch = 1.0;
 
@@ -103,7 +111,7 @@ export const TeleconsultationModal = ({ isOpen, onClose, appointment, currentUse
 
       window.speechSynthesis.speak(utterance);
     },
-    [currentLangConfig, isAiAudioMuted]
+    [speechCode, isAiAudioMuted]
   );
 
   // Speech-To-Text engine for Patient
@@ -133,12 +141,13 @@ export const TeleconsultationModal = ({ isOpen, onClose, appointment, currentUse
         const symptomsContext = appointment?.reason || 'General malaise';
         const aiPrompt = `The patient is in a live video call. Their booking complaint is "${symptomsContext}".
 The patient just said: "${cleaned}".
+IMPORTANT: The patient has chosen to communicate in ${langName}. You MUST respond entirely in ${langName} (${langNative}).
 Respond as Dr. AI, an empathetic rural healthcare physician speaking directly to the patient on a video call.
-Provide 2 to 3 spoken sentences of direct clinical guidance:
+Provide 2 to 3 spoken sentences of direct clinical guidance in ${langName}:
 1. Validate their symptoms gently.
 2. Provide immediate home relief measures, hydration, rest, or OTC advice (e.g. Paracetamol for fever/headache).
 3. Mention key warning signs when they should go to the nearest PHC or dial 108.
-Respond in clear, natural language that sounds like a real doctor speaking.`;
+Respond in clear, natural ${langName} language that sounds like a real doctor speaking.`;
 
         const history = newMessages.map((m) => ({
           role: m.isUser ? 'user' : 'model',
@@ -178,7 +187,7 @@ Respond in clear, natural language that sounds like a real doctor speaking.`;
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = true;
-      recognition.lang = currentLangConfig?.speechCode || 'en-US';
+      recognition.lang = speechCode;
 
       recognition.onresult = (event) => {
         let interim = '';
@@ -215,7 +224,7 @@ Respond in clear, natural language that sounds like a real doctor speaking.`;
 
       recognitionRef.current = recognition;
     }
-  }, [currentLangConfig, handlePatientUtterance, isOpen, micOn]);
+  }, [speechCode, handlePatientUtterance, isOpen, micOn]);
 
   // Video Call Setup & Initial AI Greeting
   useEffect(() => {
@@ -246,7 +255,16 @@ Respond in clear, natural language that sounds like a real doctor speaking.`;
           const reason = appointment?.reason || 'your symptoms';
           const doctorName = appointment?.doctor?.fullName || appointment?.doctorName || 'Dr. AI';
 
-          const welcomeGreeting = `Hello ${patientName}! I am ${doctorName}. I see you joined this video consultation for ${reason}. How are you feeling right now? Please speak and tell me what symptoms you are experiencing.`;
+          // Language-aware greeting
+          const greetings = {
+            en: `Hello ${patientName}! I am ${doctorName}. I see you joined this video consultation for ${reason}. How are you feeling right now? Please speak and tell me what symptoms you are experiencing.`,
+            hi: `नमस्ते ${patientName}! मैं ${doctorName} हूँ। मैं देख रहा हूँ कि आप ${reason} के लिए इस वीडियो परामर्श में शामिल हुए हैं। अभी आप कैसा महसूस कर रहे हैं? कृपया बोलें और बताएं कि आपको कौन से लक्षण हैं।`,
+            te: `నమస్కారం ${patientName}! నేను ${doctorName}. మీరు ${reason} కోసం ఈ వీడియో సంప్రదింపులో చేరారు. మీరు ఇప్పుడు ఎలా అనుభవిస్తున్నారు? దయచేసి మాట్లాడండి మరియు మీ లక్షణాలను చెప్పండి.`,
+            ta: `வணக்கம் ${patientName}! நான் ${doctorName}. நீங்கள் ${reason} க்கு இந்த வீடியோ ஆலோசனையில் இணைந்துள்ளீர்கள் என்று பார்க்கிறேன். இப்போது எப்படி உணர்கிறீர்கள்? தயவுசெய்து பேசி உங்கள் அறிகுறிகளைச் சொல்லுங்கள்.`,
+            bn: `নমস্কার ${patientName}! আমি ${doctorName}। আমি দেখছি আপনি ${reason} এর জন্য এই ভিডিও পরামর্শে যোগ দিয়েছেন। আপনি এখন কেমন অনুভব করছেন? দয়া করে কথা বলুন এবং আপনার লক্ষণগুলো বলুন।`,
+            es: `¡Hola ${patientName}! Soy ${doctorName}. Veo que se unió a esta consulta por video para ${reason}. ¿Cómo se siente ahora mismo? Por favor hable y cuénteme qué síntomas está experimentando.`,
+          };
+          const welcomeGreeting = greetings[apptLangCode] || greetings.en;
 
           setMessages([
             {
@@ -374,6 +392,9 @@ Respond in clear, natural language that sounds like a real doctor speaking.`;
                 <p className="font-bold text-sm tracking-wide">{doctorDisplayName}</p>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
                   <Sparkles size={10} /> AI Clinical Room
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1">
+                  🌐 {langNative}
                 </span>
               </div>
               <p className="text-[11px] text-gray-400">

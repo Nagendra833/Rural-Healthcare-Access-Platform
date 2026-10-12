@@ -8,6 +8,7 @@ const appointmentSchema = new mongoose.Schema(
     date: { type: Date, required: true },
     timeSlot: { type: String, required: true }, // e.g. "10:00 AM - 10:30 AM"
     reason: { type: String, required: true },
+    language: { type: String, default: 'en' }, // consultation language code (en, hi, te, ta, bn, es)
     status: {
       type: String,
       enum: ['pending', 'confirmed', 'completed', 'cancelled', 'rescheduled'],
