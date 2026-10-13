@@ -69,8 +69,8 @@ const ManageUsers = () => {
       {loading ? (
         <LoadingSpinner />
       ) : (
-        <div className="card overflow-x-auto p-0">
-          <table className="w-full text-sm">
+        <div className="card overflow-x-auto p-0 border border-gray-100">
+          <table className="w-full text-sm min-w-[550px]">
             <thead>
               <tr className="text-left text-gray-500 border-b border-gray-100">
                 <th className="px-4 py-3 font-medium">Name</th>

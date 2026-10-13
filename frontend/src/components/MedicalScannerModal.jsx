@@ -146,9 +146,9 @@ export const MedicalScannerModal = ({ isOpen, onClose, onExtracted }) => {
                       </p>
                       <div className="space-y-1.5">
                         {result.medications.map((m, i) => (
-                          <div key={i} className="flex items-center justify-between bg-white p-2 rounded-lg border border-gray-100 text-xs">
+                          <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-2.5 rounded-lg border border-gray-100 text-xs gap-1">
                             <span className="font-bold text-gray-900">{m.name}</span>
-                            <span className="text-gray-500">{m.dosage} • {m.frequency} • {m.duration}</span>
+                            <span className="text-gray-500 text-[11px] sm:text-xs">{m.dosage} • {m.frequency} • {m.duration}</span>
                           </div>
                         ))}
                       </div>
@@ -163,10 +163,12 @@ export const MedicalScannerModal = ({ isOpen, onClose, onExtracted }) => {
                       </p>
                       <div className="space-y-1.5">
                         {result.labResults.map((lr, i) => (
-                          <div key={i} className="flex items-center justify-between bg-white p-2 rounded-lg border border-gray-100 text-xs">
+                          <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-2.5 rounded-lg border border-gray-100 text-xs gap-1">
                             <span className="font-semibold text-gray-800">{lr.testName}</span>
-                            <span className="font-bold text-primary">{lr.value}</span>
-                            <span className="text-[10px] text-gray-400">{lr.normalRange}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-primary">{lr.value}</span>
+                              <span className="text-[10px] text-gray-400">({lr.normalRange || 'Std Range'})</span>
+                            </div>
                           </div>
                         ))}
                       </div>

@@ -8,9 +8,12 @@
   html {
     scroll-behavior: smooth;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    -webkit-text-size-adjust: 100%;
   }
   body {
     @apply bg-accent text-textmain antialiased selection:bg-primary/20 selection:text-primary-dark;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 }
 
@@ -75,4 +78,61 @@
 .leaflet-top,
 .leaflet-bottom {
   z-index: 15 !important;
+}
+
+/* Hide scrollbar utility for clean mobile swipe strips */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ─── Animate-in utility (replaces tailwindcss-animate plugin) ─── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes zoomIn95 {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slideInFromBottom {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-in {
+  animation-duration: 200ms;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+.fade-in      { animation-name: fadeIn; }
+.zoom-in-95   { animation-name: zoomIn95; }
+.slide-in-from-bottom { animation-name: slideInFromBottom; }
+.duration-150 { animation-duration: 150ms; }
+.duration-200 { animation-duration: 200ms; }
+.duration-300 { animation-duration: 300ms; }
+
+/* ─── Mobile-specific improvements ─── */
+@media (max-width: 640px) {
+  /* Ensure modals don't overflow on small screens */
+  .card {
+    @apply rounded-xl p-4;
+  }
+  /* Tappable hit areas for mobile */
+  button, a {
+    min-height: 36px;
+  }
+}
+
+/* ─── Safe area inset for notch phones ─── */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }

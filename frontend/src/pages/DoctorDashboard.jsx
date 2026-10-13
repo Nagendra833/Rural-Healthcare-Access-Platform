@@ -55,10 +55,18 @@ const DoctorDashboard = () => {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <DashboardCard icon={Calendar} label="Today's Appointments" value={todaysAppts.length} />
-        <DashboardCard icon={Users} label="Total Patients" value={new Set((data?.appointments || []).map((a) => a.patient?._id)).size} accentColor="text-blue-600" />
-        <DashboardCard icon={Stethoscope} label="Prescriptions" value="Manage" accentColor="text-purple-600" />
-        <DashboardCard icon={Bot} label="AI Medical Assistant" value="Ask" accentColor="text-teal-600" />
+        <Link to="/appointments" className="block hover:-translate-y-0.5 transition-transform">
+          <DashboardCard icon={Calendar} label="Today's Appointments" value={todaysAppts.length} />
+        </Link>
+        <Link to="/patient-records" className="block hover:-translate-y-0.5 transition-transform">
+          <DashboardCard icon={Users} label="Total Patients" value={new Set((data?.appointments || []).map((a) => a.patient?._id)).size} accentColor="text-blue-600" />
+        </Link>
+        <Link to="/prescriptions" className="block hover:-translate-y-0.5 transition-transform">
+          <DashboardCard icon={Stethoscope} label="Prescriptions" value="Manage" accentColor="text-purple-600" />
+        </Link>
+        <Link to="/ai-assistant" className="block hover:-translate-y-0.5 transition-transform">
+          <DashboardCard icon={Bot} label="AI Medical Assistant" value="Ask" accentColor="text-teal-600" />
+        </Link>
       </div>
 
       <div className="flex items-center justify-between mb-3">

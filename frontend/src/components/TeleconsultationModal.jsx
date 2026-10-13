@@ -18,6 +18,7 @@ import {
   FileCheck,
   Globe,
   Check,
+  X,
 } from 'lucide-react';
 import { sendChatMessage, analyzeMedicalDocument } from '../services/aiService';
 import { updateAppointment } from '../services/appointmentService';
@@ -489,33 +490,33 @@ CRITICAL INSTRUCTIONS:
 
   return (
     <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-200">
-      <div className="bg-gray-950 border border-gray-800 rounded-3xl w-full max-w-5xl h-[92vh] flex flex-col overflow-hidden shadow-2xl relative">
+      <div className="bg-gray-950 border border-gray-800 rounded-2xl sm:rounded-3xl w-full max-w-5xl h-[96vh] sm:h-[92vh] flex flex-col overflow-hidden shadow-2xl relative">
         {/* Top Video Header */}
-        <div className="bg-gray-900/95 px-4 sm:px-6 py-3 border-b border-gray-800 flex flex-wrap items-center justify-between text-white shrink-0 gap-3">
-          <div className="flex items-center gap-3">
+        <div className="bg-gray-900/95 px-3 sm:px-6 py-2.5 sm:py-3 border-b border-gray-800 flex flex-wrap items-center justify-between text-white shrink-0 gap-2 sm:gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             <span className="relative flex h-3 w-3">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
             </span>
             <div>
               <div className="flex items-center gap-2">
-                <p className="font-bold text-sm tracking-wide">{doctorDisplayName}</p>
+                <p className="font-bold text-xs sm:text-sm tracking-wide">{doctorDisplayName}</p>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
                   <Sparkles size={10} /> 24/7 AI Clinic
                 </span>
               </div>
-              <p className="text-[11px] text-gray-400 line-clamp-1">
+              <p className="text-[10px] sm:text-[11px] text-gray-400 line-clamp-1 max-w-[200px] sm:max-w-none">
                 Symptoms: <span className="text-gray-200 font-medium">{appointment.reason || 'General Consultation'}</span>
               </p>
             </div>
           </div>
 
           {/* Interactive In-Call Language Selector */}
-          <div className="flex items-center gap-1.5 bg-gray-950/80 p-1 rounded-2xl border border-gray-800">
-            <span className="text-[10px] text-gray-400 font-bold px-1.5 flex items-center gap-1">
+          <div className="flex items-center gap-1.5 bg-gray-950/80 p-1 rounded-2xl border border-gray-800 max-w-[220px] sm:max-w-none overflow-hidden">
+            <span className="text-[10px] text-gray-400 font-bold px-1.5 flex items-center gap-1 shrink-0">
               <Globe size={11} className="text-primary" /> Lang:
             </span>
-            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
               {SUPPORTED_LANGUAGES.map((l) => {
                 const isActive = activeLangCode === l.code;
                 return (
@@ -654,7 +655,7 @@ CRITICAL INSTRUCTIONS:
             </div>
 
             {/* Picture-in-Picture Local Self Preview */}
-            <div className="absolute bottom-4 right-4 w-32 sm:w-48 h-24 sm:h-36 rounded-2xl bg-gray-900 border-2 border-gray-700/80 overflow-hidden shadow-2xl z-20">
+            <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 w-24 sm:w-44 h-20 sm:h-32 rounded-xl sm:rounded-2xl bg-gray-900 border-2 border-gray-700/80 overflow-hidden shadow-2xl z-20">
               {videoOn ? (
                 <video
                   ref={localVideoRef}
@@ -665,21 +666,21 @@ CRITICAL INSTRUCTIONS:
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center bg-gray-900 text-gray-400 text-xs">
-                  <VideoOff size={20} />
-                  <span className="mt-1 text-[10px]">Camera Off</span>
+                  <VideoOff size={16} />
+                  <span className="mt-0.5 text-[9px] sm:text-[10px]">Camera Off</span>
                 </div>
               )}
-              <div className="absolute bottom-1 left-2 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] text-white font-semibold flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> You (Live)
+              <div className="absolute bottom-1 left-1.5 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] text-white font-semibold flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> You
               </div>
             </div>
           </div>
 
           {/* Side Drawer: Live Chat & AI Clinical Recommendations */}
           {chatOpen && (
-            <div className="w-full md:w-88 bg-gray-950 border-l border-gray-800 flex flex-col h-64 md:h-full z-20 shrink-0">
+            <div className="absolute inset-0 md:relative md:inset-auto md:w-88 bg-gray-950/95 md:bg-gray-950 border-t md:border-t-0 md:border-l border-gray-800 flex flex-col h-full z-30 shrink-0 backdrop-blur-md">
               {/* Drawer Tabs */}
-              <div className="flex border-b border-gray-800 text-xs font-semibold">
+              <div className="flex items-center border-b border-gray-800 text-xs font-semibold">
                 <button
                   onClick={() => setActiveTab('chat')}
                   className={`flex-1 py-3 text-center transition ${
@@ -688,7 +689,7 @@ CRITICAL INSTRUCTIONS:
                       : 'text-gray-400 hover:text-white'
                   }`}
                 >
-                  Live Consultation Chat
+                  Live Chat
                 </button>
                 <button
                   onClick={() => setActiveTab('rx')}
@@ -698,7 +699,14 @@ CRITICAL INSTRUCTIONS:
                       : 'text-gray-400 hover:text-white'
                   }`}
                 >
-                  <Pill size={12} /> Clinical Advice ({clinicalNotes.length})
+                  <Pill size={12} /> Advice ({clinicalNotes.length})
+                </button>
+                <button
+                  onClick={() => setChatOpen(false)}
+                  className="md:hidden p-2 text-gray-400 hover:text-white mr-2"
+                  title="Close Drawer"
+                >
+                  <X size={16} />
                 </button>
               </div>
 
@@ -772,76 +780,76 @@ CRITICAL INSTRUCTIONS:
         </div>
 
         {/* Bottom Call Control Dock */}
-        <div className="bg-gray-900/90 px-6 py-3 border-t border-gray-800/80 flex items-center justify-center gap-3 sm:gap-4 shrink-0">
+        <div className="bg-gray-900/90 px-2 sm:px-6 py-2.5 sm:py-3 border-t border-gray-800/80 flex items-center justify-center gap-1.5 sm:gap-3.5 shrink-0 overflow-x-auto no-scrollbar">
           {/* Mute/Unmute Mic */}
           <button
             onClick={toggleMic}
-            className={`w-11 h-11 rounded-2xl flex items-center justify-center transition active:scale-95 ${
+            className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl shrink-0 flex items-center justify-center transition active:scale-95 ${
               micOn ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-red-600 text-white shadow-emergencyGlow'
             }`}
             title={micOn ? 'Mute Microphone' : 'Unmute Microphone'}
           >
-            {micOn ? <Mic size={18} /> : <MicOff size={18} />}
+            {micOn ? <Mic size={17} /> : <MicOff size={17} />}
           </button>
 
           {/* Toggle Camera */}
           <button
             onClick={toggleVideo}
-            className={`w-11 h-11 rounded-2xl flex items-center justify-center transition active:scale-95 ${
+            className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl shrink-0 flex items-center justify-center transition active:scale-95 ${
               videoOn ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-red-600 text-white shadow-emergencyGlow'
             }`}
             title={videoOn ? 'Stop Camera' : 'Start Camera'}
           >
-            {videoOn ? <Video size={18} /> : <VideoOff size={18} />}
+            {videoOn ? <Video size={17} /> : <VideoOff size={17} />}
           </button>
 
           {/* Scan Camera View / Symptom Visualizer */}
           <button
             onClick={handleScanVideoSymptom}
             disabled={analyzingVisual}
-            className={`px-3.5 h-11 rounded-2xl flex items-center gap-1.5 transition active:scale-95 text-xs font-semibold ${
+            className={`px-2.5 sm:px-3.5 h-10 sm:h-11 rounded-xl sm:rounded-2xl shrink-0 flex items-center gap-1.5 transition active:scale-95 text-xs font-semibold ${
               analyzingVisual
                 ? 'bg-purple-900 text-purple-200 border border-purple-500'
                 : 'bg-purple-600/90 hover:bg-purple-600 text-white shadow-soft'
             }`}
             title="Point camera at rash, throat, or medication and tap to analyze"
           >
-            {analyzingVisual ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
+            {analyzingVisual ? <Loader2 size={15} className="animate-spin" /> : <Camera size={15} />}
             <span className="hidden sm:inline">{analyzingVisual ? 'Analyzing...' : 'Scan Video Symptom'}</span>
           </button>
 
           {/* Chat & Notes Drawer Toggle */}
           <button
             onClick={() => setChatOpen(!chatOpen)}
-            className={`w-11 h-11 rounded-2xl flex items-center justify-center transition active:scale-95 relative ${
+            className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl shrink-0 flex items-center justify-center transition active:scale-95 relative ${
               chatOpen ? 'bg-primary text-white shadow-glow' : 'bg-gray-800 text-white hover:bg-gray-700'
             }`}
             title="Chat & Clinical Advice Drawer"
           >
-            <MessageSquare size={18} />
+            <MessageSquare size={17} />
             {clinicalNotes.length > 0 && !chatOpen && (
               <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-gray-900" />
             )}
           </button>
 
           {/* End Call & Complete Buttons */}
-          <div className="flex items-center gap-1.5 ml-2">
+          <div className="flex items-center gap-1.5 ml-1 sm:ml-2 shrink-0">
             {onMarkCompleted && appointment?._id && (
               <button
                 onClick={() => onMarkCompleted(appointment._id)}
-                className="h-11 px-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-1.5 transition active:scale-95 text-xs shadow-soft"
+                className="h-10 sm:h-11 px-2.5 sm:px-3.5 rounded-xl sm:rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-1.5 transition active:scale-95 text-xs shadow-soft"
                 title="End consultation and move to Completed block"
               >
-                <Check size={16} strokeWidth={2.5} />
+                <Check size={15} strokeWidth={2.5} />
                 <span className="hidden sm:inline">End & Complete</span>
               </button>
             )}
             <button
               onClick={onClose}
-              className="h-11 px-4 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-emergencyGlow"
+              className="h-10 sm:h-11 px-3 sm:px-4 rounded-xl sm:rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-emergencyGlow"
               title="Close video window"
             >
-              <PhoneOff size={16} />
+              <PhoneOff size={15} />
               <span className="text-xs">End Call</span>
             </button>
           </div>

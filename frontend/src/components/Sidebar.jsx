@@ -22,6 +22,7 @@ const linksByRole = {
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
     { to: '/appointments', label: 'Appointments', icon: Calendar },
     { to: '/records', label: 'Medical History', icon: FileText },
+    { to: '/prescriptions', label: 'Digital Prescriptions', icon: Stethoscope },
     { to: '/ai-assistant', label: 'AI Health Assistant', icon: Bot },
     { to: '/health-centers', label: 'Nearby Health Centers', icon: MapPin },
     { to: '/emergency', label: 'Emergency Contacts', icon: Phone },

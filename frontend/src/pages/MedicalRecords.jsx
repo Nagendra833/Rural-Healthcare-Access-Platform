@@ -76,16 +76,16 @@ const MedicalRecords = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start flex-wrap">
+          <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
             <button
               onClick={() => setScannerOpen(true)}
-              className="bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg px-3.5 py-2 text-xs flex items-center gap-1.5 shadow-sm active:scale-95 transition"
+              className="bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg px-3.5 py-2 text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition flex-1 sm:flex-initial"
             >
               <Sparkles size={14} /> AI Scan Document
             </button>
             <button
               onClick={() => setModalOpen(true)}
-              className="btn-primary text-xs py-2 px-3.5 flex items-center gap-1.5"
+              className="btn-primary text-xs py-2 px-3.5 flex items-center justify-center gap-1.5 flex-1 sm:flex-initial"
             >
               <Upload size={14} /> Upload Report
             </button>

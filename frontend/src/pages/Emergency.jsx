@@ -34,7 +34,7 @@ const Emergency = () => {
             <HoldEmergencyButton />
           </div>
 
-          <div className="md:col-span-2 flex flex-col justify-between p-6 bg-gradient-to-br from-red-600 to-red-800 text-white rounded-2xl shadow-elevated relative overflow-hidden">
+          <div className="md:col-span-2 flex flex-col justify-between p-4 sm:p-6 bg-gradient-to-br from-red-600 to-red-800 text-white rounded-2xl shadow-elevated relative overflow-hidden">
             <div className="absolute right-0 bottom-0 opacity-10 translate-x-4 translate-y-4 pointer-events-none">
               <HeartPulse size={200} />
             </div>
@@ -49,16 +49,16 @@ const Emergency = () => {
               </p>
             </div>
 
-            <div className="pt-6 flex flex-wrap gap-3">
+            <div className="pt-6 flex flex-col sm:flex-row flex-wrap gap-2.5 sm:gap-3">
               <a
                 href="tel:108"
-                className="bg-white text-red-700 font-bold px-6 py-3 rounded-xl shadow hover:bg-red-50 active:scale-95 transition flex items-center gap-2 text-sm"
+                className="bg-white text-red-700 font-bold px-5 py-3 rounded-xl shadow hover:bg-red-50 active:scale-95 transition flex items-center justify-center gap-2 text-sm"
               >
                 <PhoneCall size={18} /> Call 108 Now
               </a>
               <a
                 href="tel:104"
-                className="bg-red-700/80 hover:bg-red-700 text-white font-semibold px-4 py-3 rounded-xl border border-red-500/50 active:scale-95 transition flex items-center gap-2 text-sm"
+                className="bg-red-700/80 hover:bg-red-700 text-white font-semibold px-4 py-3 rounded-xl border border-red-500/50 active:scale-95 transition flex items-center justify-center gap-2 text-sm"
               >
                 <LifeBuoy size={16} /> 104 Health Advice Helpline
               </a>

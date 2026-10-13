@@ -6,13 +6,17 @@ import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
 
 const QUICK_PROMPTS = [
-  'Common home remedies for fever and cold',
-  'What should I eat to control blood pressure?',
-  'Important vaccines for newborn infants',
-  'First aid steps for minor burns or cuts',
+  '🤒 I have high fever and body pain since 2 days',
+  '🩺 My blood pressure is high, what should I do?',
+  '🤰 I am pregnant — what foods and vitamins do I need?',
+  '🍬 I have diabetes — guide me on diet and medicines',
+  '👶 My child has diarrhea and is not drinking water',
+  '🦟 I may have malaria — what are the symptoms and treatment?',
+  '💊 What are the doses for paracetamol and ibuprofen?',
+  '🩹 I have a skin rash with itching — what could it be?',
 ];
 
-const ChatWindow = () => {
+const ChatWindow = ({ externalQuery, onExternalQueryConsumed }) => {
   const [messages, setMessages] = useState([
     {
       role: 'model',
@@ -32,6 +36,15 @@ const ChatWindow = () => {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, sending]);
+
+  // Handle externally triggered queries from category chips
+  useEffect(() => {
+    if (externalQuery && !sending) {
+      handleSend(externalQuery);
+      if (onExternalQueryConsumed) onExternalQueryConsumed();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [externalQuery]);
 
   // Initialize Speech Recognition if supported
   useEffect(() => {
@@ -91,7 +104,7 @@ const ChatWindow = () => {
         .filter((m) => m.role === 'user' || m.role === 'model')
         .map((m) => ({ role: m.role, parts: [{ text: m.text }] }));
 
-      const data = await sendChatMessage(text, history);
+      const data = await sendChatMessage(text, history, currentLangConfig.code);
       setMessages((prev) => [...prev, { role: 'model', text: data.reply }]);
     } catch (err) {
       showToast(err.response?.data?.message || 'The AI assistant is temporarily unavailable.', 'error');
@@ -118,7 +131,7 @@ const ChatWindow = () => {
   };
 
   return (
-    <div className="card flex flex-col h-[650px] max-h-[82vh] relative overflow-hidden border border-gray-100 shadow-elevated">
+    <div className="card flex flex-col h-[calc(100vh-215px)] min-h-[440px] sm:h-[650px] sm:max-h-[82vh] relative overflow-hidden border border-gray-100 shadow-elevated">
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-gray-100">
         <div className="flex items-center gap-2.5">
@@ -184,7 +197,7 @@ const ChatWindow = () => {
                       : 'bg-surface border border-gray-100 text-textmain rounded-bl-sm'
                   }`}
                 >
-                  <p className="whitespace-pre-line">{msg.text}</p>
+                  <p className="whitespace-pre-line text-sm leading-relaxed">{msg.text}</p>
                 </div>
 
                 {/* Read aloud action for AI replies */}
@@ -242,16 +255,19 @@ const ChatWindow = () => {
 
       {/* Suggested Quick Prompt Chips */}
       {messages.length <= 2 && (
-        <div className="py-2 flex gap-1.5 overflow-x-auto no-scrollbar shrink-0 border-t border-gray-50">
-          {QUICK_PROMPTS.map((prompt, i) => (
-            <button
-              key={i}
-              onClick={() => handleSend(prompt)}
-              className="px-2.5 py-1 text-xs bg-gray-50 hover:bg-accent hover:text-primary rounded-full border border-gray-200 text-gray-600 whitespace-nowrap transition"
-            >
-              {prompt}
-            </button>
-          ))}
+        <div className="py-2 shrink-0 border-t border-gray-50">
+          <p className="text-[10px] text-gray-400 font-medium px-1 pb-1">Tap a question to get started:</p>
+          <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
+            {QUICK_PROMPTS.map((prompt, i) => (
+              <button
+                key={i}
+                onClick={() => handleSend(prompt)}
+                className="px-2.5 py-1.5 text-[11px] bg-gradient-to-r from-primary/5 to-accent hover:from-primary hover:to-primary-light hover:text-white rounded-xl border border-primary/15 text-gray-700 whitespace-nowrap transition-all active:scale-95 font-medium"
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -288,17 +304,17 @@ const ChatWindow = () => {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={isListening ? 'Listening to speech...' : 'Describe symptoms or ask health question...'}
-          className="input-field flex-1 text-sm py-2"
+          placeholder={isListening ? 'Listening...' : 'Ask question or describe symptoms...'}
+          className="input-field flex-1 text-xs sm:text-sm py-2"
           disabled={sending}
         />
 
         <button
           type="submit"
           disabled={sending || !input.trim()}
-          className="btn-primary flex items-center justify-center px-4 py-2"
+          className="btn-primary flex items-center justify-center px-3 sm:px-4 py-2 shrink-0"
         >
-          <Send size={16} />
+          <Send size={15} />
         </button>
       </form>
     </div>

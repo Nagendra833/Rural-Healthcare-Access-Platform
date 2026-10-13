@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { LogOut, Bell, Globe, Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { LogOut, Bell, Globe, Wifi, WifiOff, RefreshCw, Menu } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useLanguage, SUPPORTED_LANGUAGES } from '../context/LanguageContext';
 import { useOffline } from '../context/OfflineContext';
 import { roleLabel } from '../utils/formatters';
 
-const Navbar = () => {
+const Navbar = ({ onOpenMenu }) => {
   const { user, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const { isOnline, queueCount, isSyncing, syncQueue } = useOffline();
@@ -23,10 +23,20 @@ const Navbar = () => {
 
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-100 transition-all">
-      <div className="flex items-center justify-between px-4 md:px-6 py-2.5">
-        <div className="md:hidden">
-          <p className="font-bold text-primary tracking-tight">RuralCare</p>
+      <div className="flex items-center justify-between px-3 sm:px-4 md:px-6 py-2.5">
+        {/* Mobile Hamburger + Logo */}
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            onClick={onOpenMenu}
+            className="p-1.5 -ml-1 text-gray-700 hover:text-primary rounded-lg active:scale-95 transition hover:bg-gray-100"
+            aria-label="Open Navigation Menu"
+          >
+            <Menu size={22} />
+          </button>
+          <span className="font-bold text-primary tracking-tight text-base">RuralCare</span>
         </div>
+
+        {/* Desktop Welcome Banner */}
         <div className="hidden md:flex items-center gap-3">
           <p className="text-sm text-gray-500">
             {t('welcomeBack')},{' '}
@@ -34,11 +44,12 @@ const Navbar = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        {/* Actions Bar */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
           {/* Offline/Online Status Badge */}
           <div className="flex items-center">
             {isOnline ? (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <Wifi size={12} />
                 <span className="hidden sm:inline">Online</span>
@@ -48,7 +59,7 @@ const Navbar = () => {
                 onClick={syncQueue}
                 disabled={isSyncing}
                 title="Tap to sync once network restores"
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-300 animate-pulse"
+                className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-300 animate-pulse"
               >
                 <WifiOff size={12} className="text-amber-600" />
                 <span>
@@ -69,15 +80,15 @@ const Navbar = () => {
                 setMenuOpen(false);
                 setNotifOpen(false);
               }}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 transition active:scale-95"
+              className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 transition active:scale-95"
               title="Change Language / भाषा बदलें"
             >
-              <Globe size={14} className="text-primary" />
-              <span className="font-semibold">{currentLang.native}</span>
+              <Globe size={13} className="text-primary" />
+              <span className="font-semibold text-[11px] sm:text-xs">{currentLang.native}</span>
             </button>
 
             {langMenuOpen && (
-              <div className="absolute right-0 mt-2 w-44 bg-white rounded-xl shadow-elevated border border-gray-100 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="absolute right-0 mt-2 w-48 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-elevated border border-gray-100 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
                 <div className="px-3 py-1.5 border-b border-gray-100 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
                   Select Language
                 </div>
@@ -117,7 +128,7 @@ const Navbar = () => {
             </button>
 
             {notifOpen && (
-              <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-elevated border border-gray-100 p-3 z-50">
+              <div className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-elevated border border-gray-100 p-3 z-50">
                 <div className="flex items-center justify-between pb-2 border-b border-gray-100 mb-2">
                   <p className="text-xs font-bold text-gray-700">Notifications</p>
                   <span className="text-[10px] text-primary font-medium">Clear</span>
@@ -149,7 +160,7 @@ const Navbar = () => {
               {user?.fullName?.charAt(0)?.toUpperCase() || 'U'}
             </button>
             {menuOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-elevated border border-gray-100 py-1.5 z-50">
+              <div className="absolute right-0 mt-2 w-48 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-elevated border border-gray-100 py-1.5 z-50">
                 <div className="px-4 py-2 border-b border-gray-100">
                   <p className="text-sm font-medium text-gray-800 truncate">{user?.fullName}</p>
                   <p className="text-xs text-gray-500">{roleLabel(user?.role)}</p>

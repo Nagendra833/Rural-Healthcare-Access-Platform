@@ -117,15 +117,15 @@ const PatientDashboard = () => {
             {/* Quick Actions Grid */}
             <div className="pt-2">
               <h3 className="font-bold text-gray-800 text-sm mb-3">{t('quickActions', 'Quick Actions')}</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Link
                   to="/health-centers"
-                  className="card card-hover flex items-center gap-3 p-4 border border-gray-100 hover:border-primary/40"
+                  className="card card-hover flex items-center gap-3 p-3.5 sm:p-4 border border-gray-100 hover:border-primary/40"
                 >
                   <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center text-primary shrink-0">
                     <MapPin size={20} />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <span className="text-xs font-bold text-gray-800 block">{t('nearbyCenters', 'Health Centers')}</span>
                     <span className="text-[11px] text-gray-400">Map & distance</span>
                   </div>
@@ -133,12 +133,12 @@ const PatientDashboard = () => {
 
                 <Link
                   to="/emergency"
-                  className="card card-hover flex items-center gap-3 p-4 border border-gray-100 hover:border-red-200"
+                  className="card card-hover flex items-center gap-3 p-3.5 sm:p-4 border border-gray-100 hover:border-red-200"
                 >
                   <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-600 shrink-0">
                     <ShieldAlert size={20} />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <span className="text-xs font-bold text-gray-800 block">{t('emergency', 'Emergency SOS')}</span>
                     <span className="text-[11px] text-gray-400">Ambulance & 108</span>
                   </div>

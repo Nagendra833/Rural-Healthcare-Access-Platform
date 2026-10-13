@@ -170,7 +170,7 @@ const Prescriptions = () => {
                     </div>
 
                     {/* Footer Actions */}
-                    <div className="flex items-center justify-between pt-3 mt-4 border-t border-gray-100 text-xs">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 mt-4 border-t border-gray-100 text-xs">
                       <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
                         <ShieldCheck size={13} /> Verified Rx
                       </span>

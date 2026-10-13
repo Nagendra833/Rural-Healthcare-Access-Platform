@@ -145,7 +145,7 @@ const HealthCenters = () => {
 
         {/* Interactive Map Canvas */}
         <div className="card p-2 mb-6 overflow-hidden rounded-2xl shadow-elevated border border-gray-100">
-          <div className="h-[340px] w-full rounded-xl overflow-hidden relative">
+          <div className="h-[260px] sm:h-[350px] w-full rounded-xl overflow-hidden relative">
             <MapContainer center={mapCenter} zoom={12} scrollWheelZoom={false} className="h-full w-full">
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -241,11 +241,11 @@ const HealthCenters = () => {
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 mt-3 pt-2">
+                  <div className="flex flex-col sm:flex-row items-center gap-2 mt-3 pt-2">
                     <a
                       href={`tel:${center.phone}`}
                       onClick={(e) => e.stopPropagation()}
-                      className="btn-primary flex-1 text-center text-xs py-2 flex items-center justify-center gap-1.5"
+                      className="btn-primary w-full sm:flex-1 text-center text-xs py-2 flex items-center justify-center gap-1.5"
                     >
                       <Phone size={14} /> Call {center.phone}
                     </a>
@@ -254,7 +254,7 @@ const HealthCenters = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="btn-secondary text-xs py-2 px-3 flex items-center gap-1.5"
+                      className="btn-secondary w-full sm:w-auto text-center text-xs py-2 px-3 flex items-center justify-center gap-1.5"
                     >
                       <Navigation size={14} /> {t('directions', 'Directions')}
                     </a>

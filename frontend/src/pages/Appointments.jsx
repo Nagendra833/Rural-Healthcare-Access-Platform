@@ -170,9 +170,9 @@ const Appointments = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             {user?.role === 'patient' && (
-              <button onClick={openBookModal} className="btn-primary flex items-center gap-2 text-sm shadow-soft">
+              <button onClick={openBookModal} className="btn-primary w-full sm:w-auto flex items-center justify-center gap-2 text-sm shadow-soft">
                 <Plus size={16} /> Start Consultation
               </button>
             )}

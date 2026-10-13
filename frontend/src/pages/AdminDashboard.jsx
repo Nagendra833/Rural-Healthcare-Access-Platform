@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Users, Stethoscope, Calendar, HeartHandshake, ShieldAlert } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import DashboardLayout from '../components/DashboardLayout';
@@ -25,11 +26,21 @@ const AdminDashboard = () => {
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-            <DashboardCard icon={Users} label="Total Patients" value={analytics?.totalPatients ?? 0} />
-            <DashboardCard icon={Stethoscope} label="Total Doctors" value={analytics?.totalDoctors ?? 0} accentColor="text-blue-600" />
-            <DashboardCard icon={HeartHandshake} label="Health Workers" value={analytics?.totalHealthWorkers ?? 0} accentColor="text-teal-600" />
-            <DashboardCard icon={Calendar} label="Total Appointments" value={analytics?.totalAppointments ?? 0} accentColor="text-purple-600" />
-            <DashboardCard icon={ShieldAlert} label="Pending Approvals" value={analytics?.pendingDoctorApprovals ?? 0} accentColor="text-red-600" />
+            <Link to="/manage-users" className="block hover:-translate-y-0.5 transition-transform">
+              <DashboardCard icon={Users} label="Total Patients" value={analytics?.totalPatients ?? 0} />
+            </Link>
+            <Link to="/manage-users" className="block hover:-translate-y-0.5 transition-transform">
+              <DashboardCard icon={Stethoscope} label="Total Doctors" value={analytics?.totalDoctors ?? 0} accentColor="text-blue-600" />
+            </Link>
+            <Link to="/manage-users" className="block hover:-translate-y-0.5 transition-transform">
+              <DashboardCard icon={HeartHandshake} label="Health Workers" value={analytics?.totalHealthWorkers ?? 0} accentColor="text-teal-600" />
+            </Link>
+            <div className="hover:-translate-y-0.5 transition-transform">
+              <DashboardCard icon={Calendar} label="Total Appointments" value={analytics?.totalAppointments ?? 0} accentColor="text-purple-600" />
+            </div>
+            <Link to="/approve-doctors" className="block hover:-translate-y-0.5 transition-transform">
+              <DashboardCard icon={ShieldAlert} label="Pending Approvals" value={analytics?.pendingDoctorApprovals ?? 0} accentColor="text-red-600" />
+            </Link>
           </div>
 
           <div className="card">

@@ -123,9 +123,13 @@ export const HoldEmergencyButton = ({ onTriggered }) => {
             onMouseDown={handleStartHold}
             onMouseUp={handleCancelHold}
             onMouseLeave={handleCancelHold}
-            onTouchStart={handleStartHold}
+            onTouchStart={(e) => {
+              handleStartHold();
+            }}
             onTouchEnd={handleCancelHold}
-            className={`absolute inset-2 m-auto w-24 h-24 rounded-full flex flex-col items-center justify-center shadow-lg transition-transform active:scale-95 ${
+            onTouchCancel={handleCancelHold}
+            style={{ WebkitTouchCallout: 'none', userSelect: 'none', touchAction: 'manipulation' }}
+            className={`absolute inset-2 m-auto w-24 h-24 rounded-full flex flex-col items-center justify-center shadow-lg transition-transform active:scale-95 select-none ${
               triggered
                 ? 'bg-emerald-600 text-white shadow-glow'
                 : holding

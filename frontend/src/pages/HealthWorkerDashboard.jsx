@@ -25,10 +25,18 @@ const HealthWorkerDashboard = () => {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <DashboardCard icon={ClipboardList} label="Village Records" value="View" />
-        <DashboardCard icon={Syringe} label="Pending Vaccinations" value={upcomingVax.length} accentColor="text-purple-600" />
-        <DashboardCard icon={Home} label="Scheduled Home Visits" value={upcomingVisits.length} accentColor="text-blue-600" />
-        <DashboardCard icon={FileText} label="Reports" value="Submit" accentColor="text-teal-600" />
+        <Link to="/village-records" className="block hover:-translate-y-0.5 transition-transform">
+          <DashboardCard icon={ClipboardList} label="Village Records" value="View" />
+        </Link>
+        <Link to="/vaccinations" className="block hover:-translate-y-0.5 transition-transform">
+          <DashboardCard icon={Syringe} label="Pending Vaccinations" value={upcomingVax.length} accentColor="text-purple-600" />
+        </Link>
+        <Link to="/home-visits" className="block hover:-translate-y-0.5 transition-transform">
+          <DashboardCard icon={Home} label="Scheduled Home Visits" value={upcomingVisits.length} accentColor="text-blue-600" />
+        </Link>
+        <Link to="/reports" className="block hover:-translate-y-0.5 transition-transform">
+          <DashboardCard icon={FileText} label="Reports" value="Submit" accentColor="text-teal-600" />
+        </Link>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">

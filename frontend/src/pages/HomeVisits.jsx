@@ -33,9 +33,9 @@ const HomeVisits = () => {
 
   return (
     <DashboardLayout>
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <h2 className="text-lg font-semibold">Home Visit Scheduler</h2>
-        <button onClick={() => setModalOpen(true)} className="btn-primary flex items-center gap-2">
+        <button onClick={() => setModalOpen(true)} className="btn-primary w-full sm:w-auto flex items-center justify-center gap-2">
           <Plus size={16} /> Schedule Visit
         </button>
       </div>
