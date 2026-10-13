@@ -222,8 +222,8 @@ CRITICAL INSTRUCTIONS:
 1. The patient has chosen to communicate in ${langName} (${langNative}).
 2. You MUST reply 100% in ${langName} using ${langNative} script. DO NOT reply in English unless the selected language is English.
 3. Provide 2 to 3 concise, clear spoken sentences of clinical guidance:
-   - Validate their symptoms gently.
-   - Suggest safe home care, hydration, rest, or standard OTC relief (e.g., Paracetamol for fever/headache).
+   - Directly address their specific symptoms (e.g. skin rash, stomach pain, acidity, diarrhea, cough, toothache).
+   - Suggest safe, preferred, non-harmful remedies or appropriate OTC relief specific to THIS condition (never generic advice).
    - State clear warning signs for when they must visit their nearest Primary Health Centre (PHC) or dial 108.
 4. Speak warmly and directly as a trusted rural physician.`;
 
@@ -237,10 +237,10 @@ CRITICAL INSTRUCTIONS:
         const data = await sendChatMessage(aiPrompt, history, activeLangCode);
         const reply = data.reply || (
           activeLangCode === 'te'
-            ? "నేను మీ సమస్యను అర్థం చేసుకున్నాను. దయచేసి పుష్కలంగా నీరు త్రాగి విశ్రాంతి తీసుకోండి. జ్వరం లేదా తలనొప్పి ఉంటే పారాసిటమాల్ 500mg తీసుకోండి. సమస్య తీవ్రమైతే వెంటనే సమీప ఆరోగ్య కేంద్రానికి వెళ్లండి."
+            ? "మీరు చెప్పిన లక్షణాలను పరిశీలించాను. దయచేసి నిర్దిష్టమైన రక్షణ చర్యలు పాటించండి, అవసరమైతే సమీప ప్రాథమిక ఆరోగ్య కేంద్రం (PHC) లో వైద్యుడిని సంప్రదించండి."
             : activeLangCode === 'hi'
-            ? "मैं आपकी स्थिति समझ रहा हूँ। कृपया पर्याप्त पानी पिएं और आराम करें। बुखार या सिरदर्द के लिए पैरासिटामोल लें। यदि लक्षण बढ़ें तो तुरंत नजदीकी स्वास्थ्य केंद्र जाएं।"
-            : "I understand your condition. Please take adequate rest, stay hydrated, and take Paracetamol 500mg if fever persists. If your symptoms worsen, please visit your nearest Primary Health Centre immediately."
+            ? "मैंने आपके लक्षणों को समझ लिया है। कृपया इस स्थिति के लिए उपयुक्त सुरक्षित देखभाल अपनाएं और लक्षण बने रहने पर निकटतम प्राथमिक स्वास्थ्य केंद्र (PHC) जाएं।"
+            : "I have reviewed your symptoms. Please follow condition-specific safe care and visit your nearest Primary Health Centre (PHC) for an in-person medical evaluation if symptoms continue."
         );
 
         setMessages((prev) => [...prev, { sender: doctorDisplayName, text: reply, isUser: false }]);
@@ -257,10 +257,10 @@ CRITICAL INSTRUCTIONS:
       } catch (err) {
         const fallback =
           activeLangCode === 'te'
-            ? "దయచేసి విశ్రాంతి తీసుకోండి మరియు పుష్కలంగా నీరు త్రాగండి. సమస్య తగ్గకపోతే సమీప ఆరోగ్య కేంద్రాన్ని సంప్రదించండి."
+            ? "మీ ఆరోగ్య సమస్యను సమీప ప్రాథమిక ఆరోగ్య కేంద్రం (PHC) లో పరీక్షించుకోవాలని సూచిస్తున్నాము. అత్యవసరమైతే 108 కి కాల్ చేయండి."
             : activeLangCode === 'hi'
-            ? "कृपया आराम करें और तरल पदार्थ लें। यदि लक्षण बने रहें तो प्राथमिक स्वास्थ्य केंद्र जाएं।"
-            : "Please take rest and stay hydrated. If symptoms persist, consult a doctor in person.";
+            ? "कृपया अपने लक्षणों के लिए नजदीकी प्राथमिक स्वास्थ्य केंद्र (PHC) में डॉक्टर से संपर्क करें। आपात स्थिति में 108 पर कॉल करें।"
+            : "Please consult your nearest Primary Health Centre (PHC) for a personalized clinical checkup. In emergencies, call 108 immediately.";
         setMessages((prev) => [...prev, { sender: doctorDisplayName, text: fallback, isUser: false }]);
         speakAsAiDoctor(fallback, activeLangCode);
       }
