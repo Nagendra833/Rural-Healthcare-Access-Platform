@@ -105,7 +105,10 @@ const ChatWindow = ({ externalQuery, onExternalQueryConsumed }) => {
         .map((m) => ({ role: m.role, parts: [{ text: m.text }] }));
 
       const data = await sendChatMessage(text, history, currentLangConfig.code);
-      setMessages((prev) => [...prev, { role: 'model', text: data.reply }]);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'model', text: data.reply, spokenText: data.spokenText },
+      ]);
     } catch (err) {
       showToast(err.response?.data?.message || 'The AI assistant is temporarily unavailable.', 'error');
       setMessages((prev) => [
@@ -120,13 +123,13 @@ const ChatWindow = ({ externalQuery, onExternalQueryConsumed }) => {
     }
   };
 
-  const handleToggleSpeak = (idx, text) => {
+  const handleToggleSpeak = (idx, text, spokenText) => {
     if (speakingIndex === idx && isSpeaking) {
       stopSpeaking();
       setSpeakingIndex(null);
     } else {
       setSpeakingIndex(idx);
-      speak(text);
+      speak(spokenText || text);
     }
   };
 
@@ -204,7 +207,7 @@ const ChatWindow = ({ externalQuery, onExternalQueryConsumed }) => {
                 {msg.role === 'model' && (
                   <div className="flex items-center gap-2 mt-1 px-1">
                     <button
-                      onClick={() => handleToggleSpeak(idx, msg.text)}
+                      onClick={() => handleToggleSpeak(idx, msg.text, msg.spokenText)}
                       className="inline-flex items-center gap-1 text-[11px] text-gray-500 hover:text-primary transition"
                     >
                       {speakingIndex === idx && isSpeaking ? (

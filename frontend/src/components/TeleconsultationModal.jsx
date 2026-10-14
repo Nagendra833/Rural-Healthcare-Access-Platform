@@ -111,28 +111,45 @@ export const TeleconsultationModal = ({ isOpen, onClose, appointment, currentUse
     return `${m}:${s}`;
   };
 
+  // Clean markdown symbols, asterisks, and emojis for smooth Text-to-Speech
+  const cleanTextForSpeech = (text) => {
+    if (!text) return '';
+    return text
+      .replace(/[#*_~`]/g, '')
+      .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+      .replace(/^[\s•\-\+*]+/gm, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
   // Best voice selection from browser speechSynthesis
   const getBestVoice = useCallback((targetSpeechCode, targetLangCode, targetLangName) => {
     if (!('speechSynthesis' in window)) return null;
     const voices = window.speechSynthesis.getVoices();
     if (!voices || voices.length === 0) return null;
 
+    // 1. Exact speech code match (e.g. 'te-IN')
     let match = voices.find(
       (v) => v.lang === targetSpeechCode || v.lang.replace('_', '-').toLowerCase() === targetSpeechCode.toLowerCase()
     );
     if (match) return match;
 
+    // 2. Starts with target language code (e.g. 'te', 'hi')
     match = voices.find((v) => v.lang.toLowerCase().startsWith(targetLangCode.toLowerCase()));
     if (match) return match;
 
+    // 3. Name includes the language name (e.g. 'Telugu', 'Hindi')
     match = voices.find((v) => v.name.toLowerCase().includes(targetLangName.toLowerCase()));
     if (match) return match;
 
-    if (['hi', 'te', 'ta', 'bn'].includes(targetLangCode)) {
-      match = voices.find((v) => v.lang.toLowerCase().includes('in') || v.name.toLowerCase().includes('india'));
+    // Only if target language IS English, fall back to an English voice
+    if (targetLangCode === 'en') {
+      match = voices.find((v) => v.lang.toLowerCase().startsWith('en'));
       if (match) return match;
     }
 
+    // Do NOT assign an English voice to Telugu/Hindi/etc. Returning null allows
+    // modern browsers to use their online speech synthesis for utterance.lang natively.
     return null;
   }, []);
 
@@ -142,8 +159,11 @@ export const TeleconsultationModal = ({ isOpen, onClose, appointment, currentUse
       if (!('speechSynthesis' in window)) return;
       window.speechSynthesis.cancel();
 
+      const cleanedSpeech = cleanTextForSpeech(textToSpeak);
+      if (!cleanedSpeech) return;
+
       if (isAiAudioMuted) {
-        setCurrentCaption(textToSpeak);
+        setCurrentCaption(cleanedSpeech);
         return;
       }
 
@@ -151,7 +171,7 @@ export const TeleconsultationModal = ({ isOpen, onClose, appointment, currentUse
       const lConfig = SUPPORTED_LANGUAGES.find((l) => l.code === lCode) || activeLangConfig;
       const sCode = lConfig.speechCode;
 
-      const utterance = new SpeechSynthesisUtterance(textToSpeak);
+      const utterance = new SpeechSynthesisUtterance(cleanedSpeech);
       utterance.lang = sCode;
       utterance.rate = 0.90;
       utterance.pitch = 1.0;
@@ -164,7 +184,7 @@ export const TeleconsultationModal = ({ isOpen, onClose, appointment, currentUse
       utterance.onstart = () => {
         isAiSpeakingRef.current = true;
         setAiState('speaking');
-        setCurrentCaption(textToSpeak);
+        setCurrentCaption(cleanedSpeech);
         if (recognitionRef.current) {
           try {
             recognitionRef.current.abort();
@@ -199,7 +219,7 @@ export const TeleconsultationModal = ({ isOpen, onClose, appointment, currentUse
     }
   }, [micOn]);
 
-  // Handle Patient Voice Query -> Send to Gemini AI
+  // Handle Patient Voice Query -> Send to AI
   const handlePatientUtterance = useCallback(
     async (spokenText) => {
       if (!spokenText || !spokenText.trim()) return;
@@ -213,20 +233,7 @@ export const TeleconsultationModal = ({ isOpen, onClose, appointment, currentUse
       setMessages(newMessages);
 
       try {
-        const symptomsContext = appointment?.reason || 'General health consultation';
-        const aiPrompt = `You are Dr. AI, an empathetic rural healthcare physician conducting a live telemedicine consultation.
-The patient's initial reason for consultation: "${symptomsContext}".
-The patient just spoken to you: "${cleaned}".
-
-CRITICAL INSTRUCTIONS:
-1. The patient has chosen to communicate in ${langName} (${langNative}).
-2. You MUST reply 100% in ${langName} using ${langNative} script. DO NOT reply in English unless the selected language is English.
-3. Provide 2 to 3 concise, clear spoken sentences of clinical guidance:
-   - Directly address their specific symptoms (e.g. skin rash, stomach pain, acidity, diarrhea, cough, toothache).
-   - Suggest safe, preferred, non-harmful remedies or appropriate OTC relief specific to THIS condition (never generic advice).
-   - State clear warning signs for when they must visit their nearest Primary Health Centre (PHC) or dial 108.
-4. Speak warmly and directly as a trusted rural physician.`;
-
+        const symptomsContext = appointment?.reason || '';
         const history = newMessages
           .filter((m) => !m.isSystem)
           .map((m) => ({
@@ -234,14 +241,17 @@ CRITICAL INSTRUCTIONS:
             parts: [{ text: m.text }],
           }));
 
-        const data = await sendChatMessage(aiPrompt, history, activeLangCode);
+        // Send direct patient text to prevent system prompt leakage
+        const data = await sendChatMessage(cleaned, history, activeLangCode, symptomsContext);
         const reply = data.reply || (
           activeLangCode === 'te'
-            ? "మీరు చెప్పిన లక్షణాలను పరిశీలించాను. దయచేసి నిర్దిష్టమైన రక్షణ చర్యలు పాటించండి, అవసరమైతే సమీప ప్రాథమిక ఆరోగ్య కేంద్రం (PHC) లో వైద్యుడిని సంప్రదించండి."
+            ? "మీరు చెప్పిన సమస్యకు పారాసిటమాల్ 650mg మాత్ర భోజనం తర్వాత వేసుకోండి. విశ్రాంతి తీసుకోండి, తగ్గకపోతే సమీప ప్రాథమిక ఆరోగ్య కేంద్రం (PHC) లో సంప్రదించండి."
             : activeLangCode === 'hi'
-            ? "मैंने आपके लक्षणों को समझ लिया है। कृपया इस स्थिति के लिए उपयुक्त सुरक्षित देखभाल अपनाएं और लक्षण बने रहने पर निकटतम प्राथमिक स्वास्थ्य केंद्र (PHC) जाएं।"
-            : "I have reviewed your symptoms. Please follow condition-specific safe care and visit your nearest Primary Health Centre (PHC) for an in-person medical evaluation if symptoms continue."
+            ? "आपके लक्षणों के लिए पैरासिटामोल 650mg की गोली भोजन के बाद लें। आराम करें, और लक्षण बने रहने पर निकटतम प्राथमिक स्वास्थ्य केंद्र (PHC) जाएं।"
+            : "For your symptoms, please take Paracetamol 650mg after food. Rest well, and consult your nearest health centre if symptoms persist."
         );
+
+        const spoken = data.spokenText || cleanTextForSpeech(reply);
 
         setMessages((prev) => [...prev, { sender: doctorDisplayName, text: reply, isUser: false }]);
 
@@ -249,23 +259,23 @@ CRITICAL INSTRUCTIONS:
           ...prev,
           {
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            advice: reply.slice(0, 160) + '...',
+            advice: cleanTextForSpeech(reply).slice(0, 160) + '...',
           },
         ]);
 
-        speakAsAiDoctor(reply, activeLangCode);
+        speakAsAiDoctor(spoken, activeLangCode);
       } catch (err) {
         const fallback =
           activeLangCode === 'te'
-            ? "మీ ఆరోగ్య సమస్యను సమీప ప్రాథమిక ఆరోగ్య కేంద్రం (PHC) లో పరీక్షించుకోవాలని సూచిస్తున్నాము. అత్యవసరమైతే 108 కి కాల్ చేయండి."
+            ? "మీ సమస్యకు పారాసిటమాల్ 650mg మాత్ర భోజనం తర్వాత వేసుకోండి. 2 రోజుల్లో తగ్గకపోతే సమీప PHC వైద్యుడిని సంప్రదించండి. అత్యవసరమైతే 108 కి కాల్ చేయండి."
             : activeLangCode === 'hi'
-            ? "कृपया अपने लक्षणों के लिए नजदीकी प्राथमिक स्वास्थ्य केंद्र (PHC) में डॉक्टर से संपर्क करें। आपात स्थिति में 108 पर कॉल करें।"
-            : "Please consult your nearest Primary Health Centre (PHC) for a personalized clinical checkup. In emergencies, call 108 immediately.";
+            ? "कृपया भोजन के बाद पैरासिटामोल 650mg लें। 2 दिनों में आराम न मिलने पर नजदीकी स्वास्थ्य केंद्र (PHC) जाएं। आपात स्थिति में 108 पर कॉल करें।"
+            : "Please take Paracetamol 650mg after food. If symptoms continue past 2 days, visit your nearest Primary Health Centre (PHC) or call 108 in emergencies.";
         setMessages((prev) => [...prev, { sender: doctorDisplayName, text: fallback, isUser: false }]);
-        speakAsAiDoctor(fallback, activeLangCode);
+        speakAsAiDoctor(cleanTextForSpeech(fallback), activeLangCode);
       }
     },
-    [appointment, messages, langName, langNative, activeLangCode, doctorDisplayName, speakAsAiDoctor]
+    [appointment, messages, activeLangCode, doctorDisplayName, speakAsAiDoctor]
   );
 
   // Switch Language directly inside video call

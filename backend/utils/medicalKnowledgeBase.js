@@ -1333,6 +1333,134 @@ const CONDITIONS = [
   },
 ];
 
+const { getLocalizedTabletAdvice } = require('./tabletGuidance');
+
+// ─────────────────────────────────────────────────────────────
+// Multilingual Keywords Mapping for Indian Rural Languages
+// ─────────────────────────────────────────────────────────────
+const MULTILINGUAL_KEYWORDS = {
+  viral_fever: [
+    'జ్వరం', 'జ్వరంగా ఉంది', 'ఒళ్ళు నొప్పులు', 'ఒంటి నొప్పులు', 'శరీర నొప్పులు', 'నొప్పులు',
+    'ఒళ్ళు నొప్పులుగా ఉంది', 'చలి', 'వణుకు', 'నీరసం', 'వేడి', 'తీవ్రమైన జ్వరం',
+    'బుఖార్', 'బుఖార', 'బదన్ దర్ద్',
+    'बुखार', 'बदन दर्द', 'शरीर में दर्द', 'कमजोरी', 'कंपकंपी', 'हरारत', 'ताप', 'तेज बुखार',
+    'காய்ச்சல்', 'உடல் வலி', 'நடுக்கம்', 'জ্বর', 'গা ব্যথা', 'দুর্বলতা'
+  ],
+  dengue_fever: [
+    'డెంగ్యూ', 'ప్లేట్‌లెట్స్', 'కళ్ళ వెనుక నొప్పి',
+    'डेंगू', 'प्लेटलेट्स'
+  ],
+  malaria: [
+    'మలేరియా', 'చలి జ్వరం', 'వణుకు జ్వరం',
+    'मलेरिया', 'ठंड लगकर बुखार', 'कंपकंपी बुखार'
+  ],
+  typhoid: [
+    'టైఫాయిడ్', 'ముదిరిన జ్వరం',
+    'टाइफाइड', 'मियादी बुखार'
+  ],
+  common_cold: [
+    'జలుబు', 'ముక్కు కారడం', 'తుమ్ములు', 'ముక్కు దిబ్బడ', 'దగ్గు & జలుబు',
+    'జుకామ్', 'సర్దీ',
+    'जुकाम', 'सर्दी', 'छींक', 'नाक बहना', 'बंद नाक'
+  ],
+  dry_cough: [
+    'పొడి దగ్గు', 'దగ్గు', 'గొంతు గరగర',
+    'సూఖీ ఖాసీ',
+    'सूखी खांसी', 'खांसी', 'गले में खराश'
+  ],
+  wet_cough_bronchitis: [
+    'కఫం దగ్గు', 'తెమడ', 'కఫం', 'ఛాతీలో కఫం',
+    'बलगम वाली खांसी', 'बलगम', 'कफ'
+  ],
+  sore_throat: [
+    'గొంతు నొప్పి', 'గొంతు మంట', 'టాన్సిల్స్', 'మింగలేకపోవడం',
+    'गले में दर्द', 'गला खराब', 'गले में सूजन'
+  ],
+  asthma_wheezing: [
+    'ఆయాసం', 'శ్వాస తీసుకోవడంలో ఇబ్బంది', 'దమ్ము', 'ఊపిరి ఆడకపోవడం',
+    'दमा', 'अस्थमा', 'सांस फूलना', 'सांस लेने में दिक्कत'
+  ],
+  acidity_gerd: [
+    'ఎసిడిటీ', 'అసిడిటీ', 'గుండెల్లో మంట', 'పుల్లటి తేన్పులు', 'కడుపులో మంట', 'గ్యాస్',
+    'एसिडिटी', 'सीने में जलन', 'खट्टी डकार', 'पेट में जलन'
+  ],
+  diarrhea_loose_motions: [
+    'విరేచనాలు', 'మోషన్స్', 'నీళ్ల విరేచనాలు', 'కడుపు కదలికలు',
+    'విరేచనం', 'మోషన్',
+    'दस्त', 'लूज मोशन', 'पतले दस्त', 'पेचिश'
+  ],
+  stomach_pain_cramps: [
+    'కడుపు నొప్పి', 'కడుపులో నొప్పి', 'కడుపు తిప్పడం', 'కడుపు ఉబ్బరం', 'కడుపు పిసికినట్టు',
+    'కడుపు',
+    'पेट दर्द', 'पेट में दर्द', 'पेट में तेज दर्द', 'पेट में मरोड़', 'पेट ऐंठन', 'मरोड़'
+  ],
+  constipation: [
+    'మలబద్ధకం', 'మోషన్ సాఫీగా కాకపోవడం',
+    'कब्ज', 'पेट साफ न होना'
+  ],
+  vomiting_nausea: [
+    'వాంతులు', 'వికారం', 'వాంతి రావడం',
+    'उल्टी', 'जी मिचलाना', 'वमन'
+  ],
+  headache_migraine: [
+    'తల నొప్పి', 'తలనొప్పి', 'ఒంటి తలనొప్పి', 'తీవ్రమైన తలనొప్పి',
+    'తల',
+    'सिर दर्द', 'सिरदर्द', 'माइग्रेन', 'आधे सिर में दर्द'
+  ],
+  back_pain_joint_pain: [
+    'కీళ్ల నొప్పులు', 'కీళ్ల వాపు', 'ఎముకలు లేదా కీళ్ల వాపు', 'మోకాళ్ళ నొప్పులు', 'నడుము నొప్పి', 'వెన్ను నొప్పి', 'కీళ్ళ నొప్పు',
+    'हड्डियों या जोड़ों में सूजन', 'जोड़ों का दर्द', 'घुटने का दर्द', 'कमर दर्द', 'पीठ दर्द'
+  ],
+  toothache_dental: [
+    'పంటి నొప్పి', 'చిగుళ్ల వాపు', 'పన్ను నొప్పి',
+    'दांत दर्द', 'दांत में दर्द', 'मसूड़ों में सूजन'
+  ],
+  fungal_infection: [
+    'తామర', 'గజ్జి', 'చర్మంపై పొట్టు',
+    'दाद', 'खाज', 'फंगल इन्फेक्शन'
+  ],
+  scabies: [
+    'గజ్జి', 'రాత్రి దురద', 'వేళ్ళ మధ్య దురద',
+    'स्कैबीज', 'रात में खुजली'
+  ],
+  allergy_rash_urticaria: [
+    'చర్మ దురద', 'దద్దుర్లు', 'ఎర్రటి దద్దుర్లు', 'దురద',
+    'खुजली', 'चकत्ते', 'पित्ती', 'एलर्जी'
+  ],
+  minor_cuts_burns: [
+    'గాయం', 'కాలిన గాయం', 'రక్తం కారడం', 'తెగిన గాయం',
+    'చोट', 'घाव', 'जलना', 'कटना'
+  ],
+  diabetes_management: [
+    'షుగర్ వ్యాధి', 'డయాబెటిస్', 'రక్తంలో చక్కెర',
+    'शुगर', 'मधुमेह', 'डायबिटीज'
+  ],
+  hypertension_bp: [
+    'బీపీ', 'రక్తపోటు', 'హై బీపీ',
+    'ब्लड प्रेशर', 'हाई ब्लड प्रेशर'
+  ],
+  menstrual_cramps: [
+    'పీరియడ్స్ నొప్పి', 'నెలసరి నొప్పి', 'రుతుక్రమ నొప్పి',
+    'मासिक धर्म दर्द', 'पीरियड्स का दर्द'
+  ],
+  uti_urinary_infection: [
+    'మూత్రంలో మంట', 'మూత్రం పోసేటప్పుడు నొప్పి',
+    'पेशाब में जलन', 'यूरिन इन्फेक्शन'
+  ],
+  chest_pain_emergency: [
+    'గుండె నొప్పి', 'ఛాతీ నొప్పి', 'ఛాతీలో బరువు',
+    'सीने में तेज दर्द', 'सीने में दर्द', 'छाती में दर्द', 'दिल का दौरा'
+  ],
+  snake_bite: [
+    'పాము కాటు', 'పాము కరిచింది',
+    'सांप का काटना', 'सर्पदंश'
+  ],
+  dog_animal_bite: [
+    'కుక్క కాటు', 'కుక్క కరిచింది', 'జంతువు కాటు',
+    'कुत्ते का काटना', 'कुत्ते ने काटा'
+  ],
+};
+
 // ─────────────────────────────────────────────────────────────
 // Intelligent Symptom Matcher Engine
 // ─────────────────────────────────────────────────────────────
@@ -1345,14 +1473,37 @@ function matchCondition(userText) {
 
   for (const cond of CONDITIONS) {
     let score = 0;
+    const allKeywords = [...cond.keywords, ...(MULTILINGUAL_KEYWORDS[cond.id] || [])];
 
-    for (const kw of cond.keywords) {
-      const lowerKw = kw.toLowerCase();
+    for (const kw of allKeywords) {
+      const lowerKw = kw.toLowerCase().trim();
+      if (!lowerKw) continue;
       if (text.includes(lowerKw)) {
-        // Multi-word matches score significantly higher for specificity
-        const wordCount = lowerKw.split(' ').length;
-        score += wordCount * 3;
+        const wordCount = lowerKw.split(/\s+/).length;
+        score += wordCount >= 2 ? wordCount * 5 : 3;
       }
+    }
+
+    // Secondary semantic boosts
+    if (cond.id === 'stomach_pain_cramps') {
+      if (text.includes('కడుపు') && (text.includes('నొప్పి') || text.includes('బాధ') || text.includes('తిప్పడం') || text.includes('ఉబ్బరం'))) {
+        score += 10;
+      }
+      if (text.includes('पेट') && (text.includes('दर्द') || text.includes('मरोड़') || text.includes('ऐंठन'))) {
+        score += 10;
+      }
+    }
+    if (cond.id === 'headache_migraine') {
+      if (text.includes('తల') && text.includes('నొప్పి')) score += 10;
+      if (text.includes('सिर') && text.includes('दर्द')) score += 10;
+    }
+    if (cond.id === 'viral_fever') {
+      if (text.includes('ఒళ్ళు') || text.includes('ఒంటి') || text.includes('శరీర')) score += 8;
+      if (text.includes('బదన్') || text.includes('बदन') || text.includes('बुखार')) score += 8;
+    }
+    if (cond.id === 'back_pain_joint_pain') {
+      if (text.includes('కీళ్ల') || text.includes('కీళ్ళ') || text.includes('ఎముకలు') || text.includes('మోకాళ్ళ')) score += 9;
+      if (text.includes('जोड़ों') || text.includes('घुटने') || text.includes('कमर')) score += 9;
     }
 
     if (score > highestScore) {
@@ -1371,167 +1522,141 @@ function matchCondition(userText) {
 
 // ─────────────────────────────────────────────────────────────
 // Multilingual Formatter
-// Formats the response precisely according to Dr. Aarogya specifications
+// Direct, concise tablet suggestions tailored for rural healthcare
 // ─────────────────────────────────────────────────────────────
 function formatConditionResponse(condition, userMessage, language = 'en') {
   const isTe = language === 'te';
   const isHi = language === 'hi';
+  const isTa = language === 'ta';
+  const isBn = language === 'bn';
+  const isEs = language === 'es';
 
+  const advice = getLocalizedTabletAdvice(condition.id, language, userMessage);
+
+  let formattedText = '';
   if (isTe) {
-    return formatTeluguResponse(condition, userMessage);
+    formattedText = `🔍 **మీ సమస్య:** ${advice.symptom}
+
+💊 **సిఫార్సు చేయబడిన మాత్ర (Tablet):**
+• **${advice.tablet}**
+  - మోతాదు: ${advice.dosage}
+  - ప్రయోజనం: ${advice.purpose}
+  - జాగ్రత్త: ${advice.precaution}
+
+🌿 **సాధారణ సంరక్షణ:**
+• ${advice.homeCare}
+
+⚠️ **ముఖ్య గమనిక:**
+• ${advice.warning}`;
   } else if (isHi) {
-    return formatHindiResponse(condition, userMessage);
+    formattedText = `🔍 **आपकी समस्या:** ${advice.symptom}
+
+💊 **सुझाई गई गोली (Tablet):**
+• **${advice.tablet}**
+  - खुराक: ${advice.dosage}
+  - लाभ: ${advice.purpose}
+  - सावधानी: ${advice.precaution}
+
+🌿 **घरेलू देखभाल:**
+• ${advice.homeCare}
+
+⚠️ **महत्वपूर्ण सूचना:**
+• ${advice.warning}`;
+  } else if (isTa || isBn || isEs) {
+    formattedText = `🔍 **${advice.symptom}**
+
+💊 **${advice.tablet}**
+• Dosage: ${advice.dosage}
+• Purpose: ${advice.purpose}
+• Care: ${advice.homeCare}
+
+⚠️ ${advice.warning}`;
+  } else {
+    // English default
+    formattedText = `🔍 **Your Symptom:** ${advice.symptom}
+
+💊 **Recommended Tablet:**
+• **${advice.tablet}**
+  - Dosage: ${advice.dosage}
+  - Purpose: ${advice.purpose}
+  - Caution: ${advice.precaution}
+
+🌿 **Simple Care:**
+• ${advice.homeCare}
+
+⚠️ **Important Notice:**
+• ${advice.warning}`;
   }
 
-  // Default: English response
-  return formatEnglishResponse(condition, userMessage);
-}
-
-function formatEnglishResponse(condition, userMessage) {
-  let medSection = condition.medicines.map((m) => {
-    return `• **${m.name}**\n  - Dosage: ${m.dosage}\n  - Duration: ${m.duration}\n  - Purpose: ${m.purpose}\n  - Safety Advice: ${m.precautions}`;
-  }).join('\n\n');
-
-  let homeRemediesSection = condition.homeRemedies.map((hr) => `• ${hr}`).join('\n');
-  let warningsSection = condition.warningSigns.map((w) => `• ${w}`).join('\n');
-  let testsSection = condition.testsAndReferrals.map((t) => `• ${t}`).join('\n');
-  let preventionSection = condition.prevention.map((p) => `• ${p}`).join('\n');
-
-  return `🔍 **What You're Experiencing**
-You reported: "${userMessage}". ${condition.overview}
-
-📋 **This May Be** (Possible Conditions)
-${condition.possibleConditions.map((c) => `• ${c}`).join('\n')}
-
-💊 **Recommended Medicines & Treatment**
-${medSection}
-
-🌿 **Safe Home Remedies:**
-${homeRemediesSection}
-
-⚠️ **Go to Hospital / Primary Health Centre Immediately If:**
-${warningsSection}
-
-🏥 **Suggested Tests & Next Steps:**
-${testsSection}
-
-💡 **Prevention Tips:**
-${preventionSection}`;
-}
-
-function formatTeluguResponse(condition, userMessage) {
-  // Rich Telugu localized presentation
-  let medSection = condition.medicines.map((m) => {
-    return `• **${m.name}**\n  - మోతాదు (Dosage): ${m.dosage}\n  - వ్యవధి (Duration): ${m.duration}\n  - ప్రయోజనం: ${m.purpose}\n  - జాగ్రత్తలు: ${m.precautions}`;
-  }).join('\n\n');
-
-  let homeRemediesSection = condition.homeRemedies.map((hr) => `• ${hr}`).join('\n');
-  let warningsSection = condition.warningSigns.map((w) => `• ${w}`).join('\n');
-  let testsSection = condition.testsAndReferrals.map((t) => `• ${t}`).join('\n');
-  let preventionSection = condition.prevention.map((p) => `• ${p}`).join('\n');
-
-  return `🔍 **మీ సమస్య విశ్లేషణ (What You're Experiencing)**
-మీరు చెప్పిన లక్షణాలు: "${userMessage}". ${condition.title} సంబంధిత సమస్యగా కనిపిస్తోంది. ${condition.overview}
-
-📋 **ఇది ఏమి కావచ్చు (Possible Conditions)**
-${condition.possibleConditions.map((c) => `• ${c}`).join('\n')}
-
-💊 **సిఫార్సు చేయబడిన మందులు & చికిత్స (Recommended Safe Medicines)**
-${medSection}
-
-🌿 **సురక్షితమైన గృహ నివారణలు (Home Remedies):**
-${homeRemediesSection}
-
-⚠️ **వెంటనే ఆసుపత్రికి లేదా PHC కి వెళ్లవలసిన హెచ్చరిక సంకేతాలు:**
-${warningsSection}
-
-🏥 **సిఫార్సు చేయబడిన పరీక్షలు & తదుపరి చర్యలు:**
-${testsSection}
-
-💡 **నివారణ చర్యలు (Prevention Tips):**
-${preventionSection}`;
-}
-
-function formatHindiResponse(condition, userMessage) {
-  // Rich Hindi localized presentation
-  let medSection = condition.medicines.map((m) => {
-    return `• **${m.name}**\n  - खुराक (Dosage): ${m.dosage}\n  - अवधि (Duration): ${m.duration}\n  - लाभ (Purpose): ${m.purpose}\n  - सुरक्षा सलाह (Precautions): ${m.precautions}`;
-  }).join('\n\n');
-
-  let homeRemediesSection = condition.homeRemedies.map((hr) => `• ${hr}`).join('\n');
-  let warningsSection = condition.warningSigns.map((w) => `• ${w}`).join('\n');
-  let testsSection = condition.testsAndReferrals.map((t) => `• ${t}`).join('\n');
-  let preventionSection = condition.prevention.map((p) => `• ${p}`).join('\n');
-
-  return `🔍 **आपकी स्थिति का विश्लेषण (What You're Experiencing)**
-आपने बताया: "${userMessage}". यह समस्या ${condition.title} से संबंधित प्रतीत होती है। ${condition.overview}
-
-📋 **यह क्या हो सकता है (Possible Conditions)**
-${condition.possibleConditions.map((c) => `• ${c}`).join('\n')}
-
-💊 **सलाह दी गई सुरक्षित दवाएं और उपचार (Recommended Medicines)**
-${medSection}
-
-🌿 **सुरक्षित घरेलू उपचार (Safe Home Remedies):**
-${homeRemediesSection}
-
-⚠️ **तुरंत अस्पताल या प्राथमिक स्वास्थ्य केंद्र (PHC) जाने के लक्षण:**
-${warningsSection}
-
-🏥 **सुझाए गए टेस्ट और अगले कदम:**
-${testsSection}
-
-💡 **रोकथाम के उपाय (Prevention Tips):**
-${preventionSection}`;
+  return {
+    text: formattedText,
+    spokenText: advice.spokenText,
+    toString() {
+      return this.text;
+    },
+  };
 }
 
 // Fallback when specific keywords don't trigger a distinct condition
 function getGeneralSymptomGuidance(userMessage, language = 'en') {
-  if (language === 'te') {
-    return `🔍 **మీ సమస్య విశ్లేషణ**
-మీరు తెలిపిన లక్షణాలు: "${userMessage}".
+  const advice = getLocalizedTabletAdvice(null, language, userMessage);
+  const isTe = language === 'te';
+  const isHi = language === 'hi';
 
-📋 **గమనిక & మార్గదర్శకత్వం**
-మీరు పేర్కొన్న లక్షణాలు స్పష్టమైన సాధారణ శారీరక అసౌకర్యాన్ని సూచిస్తున్నాయి. మరింత నిర్దిష్టమైన సలహా కొరకు దయచేసి జ్వరం, దగ్గు, కడుపునొప్పి, దద్దుర్లు లేదా నొప్పి వంటి ప్రధాన లక్షణాన్ని వివరంగా తెలపండి.
+  let formattedText = '';
+  if (isTe) {
+    formattedText = `🔍 **మీ సమస్య:** ${advice.symptom}
 
-💊 **ప్రాథమిక సురక్షిత సంరక్షణ**
-• పుష్కలంగా కాచి చల్లార్చిన నీరు మరియు ఓరల్ రీహైడ్రేషన్ సాల్ట్స్ (ORS) త్రాగండి.
-• తాజా, తేలికపాటి ఆహారం (కిచిడీ, జావ) తీసుకోండి.
-• అనవసరంగా యాంటీబయాటిక్స్ లేదా హానికరమైన మందులు తీసుకోకండి.
+💊 **సిఫార్సు చేయబడిన ప్రాథమిక మాత్ర:**
+• **${advice.tablet}**
+  - మోతాదు: ${advice.dosage}
+  - ప్రయోజనం: ${advice.purpose}
+  - జాగ్రత్త: ${advice.precaution}
 
-⚠️ **ఎప్పుడు ఆసుపత్రికి వెళ్ళాలి:**
-• విపరీతమైన నొప్పి, అధిక జ్వరం, శ్వాస తీసుకోవడంలో ఇబ్బంది లేదా వాంతులు ఉంటే వెంటనే సమీప ప్రాథమిక ఆరోగ్య కేంద్రానికి (PHC) వెళ్లండి లేదా 108 కి కాల్ చేయండి.`;
+🌿 **సాధారణ సంరక్షణ:**
+• ${advice.homeCare}
+• మరింత స్పష్టమైన సలహా కోసం మీ ప్రధాన లక్షణాన్ని (జ్వరం, కడుపు నొప్పి, దగ్గు వంటివి) తెలపండి.
+
+⚠️ **ముఖ్య గమనిక:**
+• ${advice.warning}`;
+  } else if (isHi) {
+    formattedText = `🔍 **आपकी स्थिति:** ${advice.symptom}
+
+💊 **प्राथमिक सुरक्षित दवा:**
+• **${advice.tablet}**
+  - खुराक: ${advice.dosage}
+  - लाभ: ${advice.purpose}
+  - सावधानी: ${advice.precaution}
+
+🌿 **घरेलू देखभाल:**
+• ${advice.homeCare}
+• सटीक सलाह के लिए कृपया अपना मुख्य लक्षण (जैसे बुखार, पेट दर्द, खांसी) बताएं।
+
+⚠️ **महत्वपूर्ण सूचना:**
+• ${advice.warning}`;
+  } else {
+    formattedText = `🔍 **Your Symptoms:** ${advice.symptom}
+
+💊 **Primary Recommended Relief:**
+• **${advice.tablet}**
+  - Dosage: ${advice.dosage}
+  - Purpose: ${advice.purpose}
+  - Caution: ${advice.precaution}
+
+🌿 **Simple Care:**
+• ${advice.homeCare}
+
+⚠️ **Important Notice:**
+• ${advice.warning}`;
   }
 
-  if (language === 'hi') {
-    return `🔍 **आपकी स्थिति का विश्लेषण**
-आपने बताया: "${userMessage}".
-
-📋 **मार्गदर्शन**
-आपके द्वारा बताए गए लक्षणों के सटीक निदान हेतु कृपया मुख्य लक्षण जैसे बुखार, खांसी, पेट दर्द, त्वचा की समस्या या दर्द का स्पष्ट विवरण दें।
-
-💊 **प्राथमिक सुरक्षित देखभाल**
-• पर्याप्त मात्रा में उबला हुआ पानी और ORS घोल का सेवन करें।
-• सुपाच्य और पौष्टिक भोजन (जैसे खिचड़ी, दलिया) लें।
-• बिना डॉक्टर की सलाह के कोई तेज या हानिकारक एंटीबायोटिक न लें।
-
-⚠️ **अस्पताल कब जाएं:**
-• तेज बुखार, सीने में दर्द, सांस लेने में तकलीफ या अत्यधिक कमजोरी होने पर तुरंत नजदीकी प्राथमिक स्वास्थ्य केंद्र (PHC) जाएं या 108 पर कॉल करें।`;
-  }
-
-  return `🔍 **What You're Experiencing**
-You mentioned: "${userMessage}".
-
-📋 **Assessment & Guidance**
-To give you the most accurate and safe treatment, please specify your primary symptom (for example: fever, dry cough, stomach acidity, loose motions, skin rash, or headache).
-
-💊 **General Safe First-Line Care**
-• Hydrate actively with boiled, clean water and Oral Rehydration Salts (ORS).
-• Eat light, freshly prepared, non-greasy meals (rice gruel, soft khichdi).
-• Avoid self-medicating with unprescribed strong antibiotics or heavy painkillers without a medical consultation.
-
-⚠️ **When to Seek Immediate Medical Help:**
-• High fever exceeding 101°F for over 3 days, breathlessness, persistent vomiting, or sudden severe pain requires an immediate visit to your nearest Primary Health Centre (PHC) or Community Health Centre. In emergencies, dial 108 immediately.`;
+  return {
+    text: formattedText,
+    spokenText: advice.spokenText,
+    toString() {
+      return this.text;
+    },
+  };
 }
 
 module.exports = {

@@ -251,18 +251,48 @@ export const LanguageProvider = ({ children }) => {
     [language]
   );
 
+  const cleanTextForSpeech = (text) => {
+    if (!text) return '';
+    return text
+      .replace(/[#*_~`]/g, '')
+      .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+      .replace(/^[\s•\-\+*]+/gm, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
   // Web Speech Synthesis (Text-to-Speech)
   const speak = useCallback(
     (text) => {
       if (!('speechSynthesis' in window)) return;
       window.speechSynthesis.cancel();
-      if (!text) {
+      const cleanedText = cleanTextForSpeech(text);
+      if (!cleanedText) {
         setIsSpeaking(false);
         return;
       }
-      const utterance = new SpeechSynthesisUtterance(text);
+      const utterance = new SpeechSynthesisUtterance(cleanedText);
       utterance.lang = currentLangConfig.speechCode;
-      utterance.rate = 0.95; // Clearer pace for rural elderly
+      utterance.rate = 0.92; // Clear pace for rural users
+
+      const voices = window.speechSynthesis.getVoices();
+      if (voices && voices.length > 0) {
+        let match = voices.find(
+          (v) =>
+            v.lang === currentLangConfig.speechCode ||
+            v.lang.replace('_', '-').toLowerCase() === currentLangConfig.speechCode.toLowerCase()
+        );
+        if (!match) {
+          match = voices.find((v) => v.lang.toLowerCase().startsWith(currentLangConfig.code.toLowerCase()));
+        }
+        if (!match) {
+          match = voices.find((v) => v.name.toLowerCase().includes(currentLangConfig.name.toLowerCase()));
+        }
+        if (match) {
+          utterance.voice = match;
+        }
+      }
+
       utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => setIsSpeaking(false);
       utterance.onerror = () => setIsSpeaking(false);
