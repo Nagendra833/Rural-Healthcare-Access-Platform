@@ -15,6 +15,7 @@ import {
   Calendar,
   X,
   ExternalLink,
+  Trash2,
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import DashboardLayout from '../components/DashboardLayout';
@@ -26,7 +27,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useFetch } from '../hooks/useFetch';
 import { useToast } from '../context/ToastContext';
 import { triggerConfetti } from '../utils/confetti';
-import { getRecords, uploadRecord } from '../services/recordService';
+import { getRecords, uploadRecord, deleteRecord } from '../services/recordService';
 import { formatDate } from '../utils/formatters';
 import { detectProfileFromRecord, CATEGORY_OPTIONS } from '../utils/clinicalProfiles';
 
@@ -56,6 +57,26 @@ const MedicalRecords = () => {
   const [filterType, setFilterType] = useState('all');
   const [form, setForm] = useState({ title: '', recordType: 'other', file: null });
   const [saving, setSaving] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const confirmDelete = async () => {
+    if (!recordToDelete) return;
+    setDeleting(true);
+    try {
+      await deleteRecord(recordToDelete._id);
+      showToast('Record deleted successfully from Health Vault', 'success');
+      if (selectedRecordForReport?._id === recordToDelete._id) {
+        setSelectedRecordForReport(null);
+      }
+      setRecordToDelete(null);
+      refetch();
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to delete record', 'error');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -215,6 +236,16 @@ const MedicalRecords = () => {
                         <ExternalLink size={16} />
                       </a>
                     )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setRecordToDelete(record);
+                      }}
+                      className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition"
+                      title="Delete Medical Record"
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </div>
                 </div>
               </StaggerItem>
@@ -487,6 +518,13 @@ const MedicalRecords = () => {
                       <Download size={14} /> Download Scanned File
                     </a>
                   )}
+                  <button
+                    onClick={() => setRecordToDelete(selectedRecordForReport)}
+                    className="text-xs text-red-600 hover:bg-red-50 py-2 px-3 rounded-lg flex items-center gap-1.5 transition font-medium border border-red-100"
+                    title="Delete Record"
+                  >
+                    <Trash2 size={14} /> Delete
+                  </button>
                 </div>
                 <button
                   onClick={() => setSelectedRecordForReport(null)}
@@ -498,6 +536,42 @@ const MedicalRecords = () => {
             </div>
           </div>
         )}
+
+        {/* Delete Confirmation Modal */}
+        <Modal
+          isOpen={!!recordToDelete}
+          onClose={() => !deleting && setRecordToDelete(null)}
+          title="Delete Medical Record"
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-gray-700">
+              Are you sure you want to permanently delete{' '}
+              <span className="font-semibold text-gray-900">"{recordToDelete?.title}"</span>?
+            </p>
+            <div className="text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-200/80 leading-relaxed">
+              ⚠️ <strong>Warning:</strong> This document and its clinical metadata will be permanently deleted from your Health Vault.
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setRecordToDelete(null)}
+                className="btn-secondary text-xs py-2 px-3.5"
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg text-xs py-2 px-3.5 flex items-center gap-1.5 shadow-sm active:scale-95 transition"
+                disabled={deleting}
+              >
+                <Trash2 size={14} />
+                {deleting ? 'Deleting...' : 'Yes, Delete Record'}
+              </button>
+            </div>
+          </div>
+        </Modal>
       </PageTransition>
     </DashboardLayout>
   );

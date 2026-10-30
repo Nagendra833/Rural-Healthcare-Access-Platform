@@ -1,3 +1,5 @@
+const path = require('path');
+const fs = require('fs');
 const MedicalRecord = require('../models/MedicalRecord');
 const asyncHandler = require('../utils/asyncHandler');
 
@@ -50,4 +52,43 @@ const uploadRecord = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, message: 'Record uploaded', record });
 });
 
-module.exports = { getRecords, uploadRecord };
+// @desc    Delete a medical record
+// @route   DELETE /api/records/:id
+// @access  Private
+const deleteRecord = asyncHandler(async (req, res) => {
+  const record = await MedicalRecord.findById(req.params.id);
+
+  if (!record) {
+    return res.status(404).json({ success: false, message: 'Medical record not found' });
+  }
+
+  // Check authorization: patient owns record, or uploader owns it, or admin
+  const isOwner =
+    (record.patient && record.patient.toString() === req.user._id.toString()) ||
+    (record.uploadedBy && record.uploadedBy.toString() === req.user._id.toString());
+  const isAdmin = req.user.role === 'admin';
+
+  if (!isOwner && !isAdmin) {
+    return res.status(403).json({ success: false, message: 'Not authorized to delete this record' });
+  }
+
+  // Optionally delete disk file if it exists
+  if (record.fileUrl && record.fileUrl.startsWith('/uploads/')) {
+    const filename = record.fileUrl.replace('/uploads/', '');
+    const filePath = path.join(__dirname, '../uploads', filename);
+    if (fs.existsSync(filePath)) {
+      try {
+        fs.unlinkSync(filePath);
+      } catch (err) {
+        console.error('Failed to unlink record file:', err);
+      }
+    }
+  }
+
+  await record.deleteOne();
+
+  res.status(200).json({ success: true, message: 'Medical record deleted successfully' });
+});
+
+module.exports = { getRecords, uploadRecord, deleteRecord };
+
